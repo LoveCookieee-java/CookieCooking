@@ -357,9 +357,7 @@ Messages:
     NoItemInHand: <gray>You do not have an item in your hand
   Startup:
     Wiki: '{Prefix} <red>Wiki: <gray>https://github.com/LoveCookieee-java'
-    # QQGroup: '{Prefix} <red>QQ Group: <gray>299852340'
     Discord: '{Prefix} <red>Discord: <gray>https://discord.gg/CCUNfyE4aZ'
     Failed: '{Prefix} <red>Failed to start CookieCooking'
     NoPlaceholderAPI: '{Prefix} <red>PlaceholderAPI is not installed on this server!'
-  # QQGroup: '{Prefix} <red>QQ Group: <gray>299852340'
   WokHeatControl: '<gold>Heat level: <yellow>{Heat}'
