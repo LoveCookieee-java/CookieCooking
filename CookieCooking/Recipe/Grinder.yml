@@ -1,0 +1,176 @@
+# ============================================
+# CookieCooking - Grinder Recipes
+# ============================================
+
+# --- NGŨ CỐC ---
+minecraft WHEAT:
+  Output:
+  - minecraft SUGAR 2 100
+  GrindingTime: 5
+  Permission: "grinder.use"
+
+minecraft SUGAR_CANE:
+  Output:
+  - minecraft SUGAR 2-3 100
+  GrindingTime: 4
+  Permission: "grinder.use"
+
+minecraft COCOA_BEANS:
+  Output:
+  - minecraft COOKIE 1 100
+  GrindingTime: 6
+  Permission: "grinder.use"
+
+minecraft MELON_SEEDS:
+  Output:
+  - minecraft SUGAR 1 100
+  GrindingTime: 3
+  Permission: "grinder.use"
+
+minecraft PUMPKIN_SEEDS:
+  Output:
+  - minecraft SUGAR 1 100
+  GrindingTime: 3
+  Permission: "grinder.use"
+
+# --- XƯƠNG ---
+minecraft BONE:
+  Output:
+  - minecraft BONE_MEAL 3-4 100
+  GrindingTime: 5
+  Permission: "grinder.use"
+
+minecraft LEATHER:
+  Output:
+  - minecraft RABBIT_HIDE 2 100
+  GrindingTime: 8
+  Permission: "grinder.use"
+
+# --- KHOÁNG SẢN ---
+minecraft COBBLESTONE:
+  Output:
+  - minecraft GRAVEL 1 100
+  GrindingTime: 5
+  Permission: "grinder.use"
+
+minecraft GRAVEL:
+  Output:
+  - minecraft SAND 1 100
+  - minecraft FLINT 1 25
+  GrindingTime: 5
+  Permission: "grinder.use"
+
+minecraft SAND:
+  Output:
+  - minecraft CLAY_BALL 2 100
+  GrindingTime: 8
+  Permission: "grinder.use"
+
+minecraft BLACKSTONE:
+  Output:
+  - minecraft BASALT 1 100
+  GrindingTime: 6
+  Permission: "grinder.use"
+
+minecraft RAW_COPPER:
+  Output:
+  - minecraft COPPER_INGOT 1 90
+  - minecraft RAW_COPPER 1 20
+  GrindingTime: 12
+  Permission: "grinder.use"
+
+minecraft RAW_IRON:
+  Output:
+  - minecraft IRON_NUGGET 6-9 100
+  - minecraft IRON_INGOT 1 15
+  GrindingTime: 15
+  Permission: "grinder.use"
+
+minecraft RAW_GOLD:
+  Output:
+  - minecraft GOLD_NUGGET 6-9 100
+  - minecraft GOLD_INGOT 1 10
+  GrindingTime: 18
+  Permission: "grinder.use"
+
+# --- HIẾM ---
+minecraft LAPIS_LAZULI:
+  Output:
+  - minecraft LAPIS_LAZULI 2-3 100
+  - minecraft BLUE_DYE 1 30
+  GrindingTime: 10
+  Permission: "grinder.use"
+
+minecraft REDSTONE:
+  Output:
+  - minecraft REDSTONE 2-3 100
+  - minecraft GLOWSTONE_DUST 1 15
+  GrindingTime: 10
+  Permission: "grinder.use"
+
+minecraft EMERALD:
+  Output:
+  - minecraft EMERALD 1 100
+  - minecraft EXPERIENCE_BOTTLE 1 10
+  GrindingTime: 20
+  Permission: "grinder.use"
+
+minecraft AMETHYST_SHARD:
+  Output:
+  - minecraft AMETHYST_SHARD 2 100
+  - minecraft GLOWSTONE_DUST 1 25
+  GrindingTime: 12
+  Permission: "grinder.use"
+
+minecraft QUARTZ:
+  Output:
+  - minecraft QUARTZ 2 100
+  - minecraft GLOWSTONE_DUST 1 20
+  GrindingTime: 10
+  Permission: "grinder.use"
+
+minecraft NETHERITE_SCRAP:
+  Output:
+  - minecraft NETHERITE_SCRAP 1 100
+  - minecraft GOLD_NUGGET 2-4 50
+  GrindingTime: 45
+  Permission: "grinder.use"
+
+minecraft SHULKER_SHELL:
+  Output:
+  - minecraft SHULKER_SHELL 1 100
+  - minecraft ENDER_PEARL 1 15
+  GrindingTime: 30
+  Permission: "grinder.use"
+
+# --- THẢO MỘC ---
+minecraft DANDELION:
+  Output:
+  - minecraft YELLOW_DYE 2 100
+  GrindingTime: 3
+  Permission: "grinder.use"
+
+minecraft POPPY:
+  Output:
+  - minecraft RED_DYE 2 100
+  GrindingTime: 3
+  Permission: "grinder.use"
+
+minecraft BLUE_ORCHID:
+  Output:
+  - minecraft LIGHT_BLUE_DYE 2 100
+  GrindingTime: 3
+  Permission: "grinder.use"
+
+minecraft SPIDER_EYE:
+  Output:
+  - minecraft FERMENTED_SPIDER_EYE 1 80
+  - minecraft SUGAR 1 30
+  GrindingTime: 8
+  Permission: "grinder.use"
+
+minecraft BLAZE_ROD:
+  Output:
+  - minecraft BLAZE_POWDER 3-4 100
+  GrindingTime: 10
+  Permission: "grinder.use"

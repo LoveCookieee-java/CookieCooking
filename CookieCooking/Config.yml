@@ -1,0 +1,365 @@
+Setting:
+  General:
+    # Search radius for display entities
+    SearchRadius: 0.45
+  ChoppingBoard:
+    # Drop the finished item after chopping board processing
+    Drop: true
+    # Require sneaking to interact with the chopping board
+    # Enabled: players must sneak to use chopping board features
+    # Disabled: players can interact directly without sneaking
+    StealthInteraction: true
+    # Use a custom block as the chopping board
+    # Enabled: use blocks from compatible plugins (for example: CraftEngine)
+    # Disabled: use vanilla blocks
+    #
+    # CraftEngine block: craftengine <Key>:<ID>
+    Custom: false
+    Material: OAK_LOG
+    # Allow blocks above the chopping board
+    # Enabled: the chopping board cannot be used when a block is above it
+    # Disabled: blocks above the chopping board are allowed
+    SpaceRestriction: false
+    # Minimum chopping board interaction interval (seconds)
+    # Prevents players from interacting too quickly
+    # Set to 0 for no delay
+    Delay: 1.0
+    KitchenKnife:
+      # Use a custom knife
+      # Enabled: use items from compatible plugins (for example: CraftEngine, MMOItems)
+      # Disabled: use vanilla items
+      #
+      # CraftEngine item: craftengine <Key>:<ID>
+      # MMOItems item: mmoitems <Type>:<ID>
+      Custom: false
+      Material:
+      - minecraft IRON_AXE
+    Damage:
+      # Enable the chopping board event
+      # Enabled: cutting ingredients has a chance to hurt the player's finger
+      Enable: true
+      Chance: 10
+      Value: 2
+    DisplayEntity:
+      Item:
+        Offset:
+          X: 0.5
+          Y: 1.02
+          Z: 0.5
+        Rotation:
+          X: 90.0
+          Y: 0.0
+          # Allows decimal Z-axis rotation angles (0.0, 360.0)
+          # Also allows a random range value (0.0-360.0)
+          Z: 0.0
+        Scale: 0.5
+      Block:
+        Offset:
+          X: 0.5
+          Y: 1.125
+          Z: 0.5
+        Rotation:
+          X: 0.0
+          Y: 90.0
+          # Allows decimal Z-axis rotation angles (0.0, 360.0)
+          # Also allows a random range value (0.0-360.0)
+          Z: 0.0
+        Scale: 0.25
+  Wok:
+    # Drop the finished item after wok cooking
+    Drop: true
+    # Require sneaking for wok interactions
+    #
+    # Enabled: all wok interactions (adding ingredients, removing ingredients, and stir-frying) require sneaking
+    # If Setting.Wok.NeedBowl is disabled, serving the finished dish with an empty hand does not require sneaking
+    #
+    # Disabled: all wok interactions (adding ingredients, removing ingredients, and stir-frying) do not require sneaking
+    # If Setting.Wok.NeedBowl is disabled, serving the finished dish with an empty hand requires sneaking
+    StealthInteraction: true
+    # Use a custom wok block
+    # Enabled: use blocks from compatible plugins (for example: CraftEngine)
+    # Disabled: use vanilla blocks
+    #
+    # CraftEngine block: craftengine <Key>:<ID>
+    Custom: false
+    Material: IRON_BLOCK
+    # Define the cooking strength for each heat source
+    # Higher values mean stronger heat
+    #
+    # Supports CraftEngine blocks and furniture
+    # CraftEngine block: craftengine <Key>:<ID>: <HeatLevel>
+    HeatControl:
+      LAVA: 3
+      CAMPFIRE: 1
+      MAGMA_BLOCK: 2
+    # Require a bowl to serve finished wok dishes
+    # Enabled: players must hold a bowl to serve the finished dish
+    # Disabled: players can serve the finished dish with an empty hand
+    # If enabled, sneaking for serving is controlled by Setting.Wok.StealthInteraction
+    NeedBowl: true
+    # This option is used when a player adds an incomplete or invalid ingredient combination
+    # Serving the result will give this item as the failed output
+    InvalidRecipeOutput: STONE
+    # Wok stir-fry delay time (seconds)
+    # This value should be less than Setting.Wok.TimeOut
+    Delay: 5
+    Damage:
+      # Enable burn damage when taking ingredients out of the wok
+      # Enabled: if ingredients are in the wok and have been stir-fried, taking them out will deal damage
+      # Disabled: taking ingredients out of the wok will not deal any damage
+      Enable: true
+      Value: 2
+    Failure:
+      # Enable the wok cooking failure event
+      # Enabled: cooking can still fail randomly even when ingredients and steps are correct
+      # Disabled: cooking always succeeds when ingredients and steps are correct
+      Enable: true
+      Chance: 5
+      # Output item generated when wok cooking fails
+      Type: BONE_MEAL
+    # Maximum wait time after a single stir-fry action (seconds)
+    # This timer resets after each stir-fry action
+    # If the timer ends before another stir-fry, ingredients in the wok burn into failed output
+    TimeOut: 30
+    Spatula:
+      # Use a custom spatula
+      # Enabled: use items from compatible plugins (for example: CraftEngine, MMOItems)
+      # Disabled: use vanilla items
+      # CraftEngine item: craftengine <Key>:<ID>
+      # MMOItems item: mmoitems <Type>:<ID>
+      Custom: false
+      Material:
+      - minecraft IRON_SHOVEL
+    DisplayEntity:
+      Item:
+        Offset:
+          X: 0.5
+          Y: 1.02
+          Z: 0.5
+        Rotation:
+          X: 90.0
+          Y: 0.0
+          # Allows decimal Z-axis rotation angles (0.0, 360.0)
+          # Also allows a random range value (0.0-360.0)
+          Z: 0.0-90.0
+        Scale: 0.5
+      Block:
+        Offset:
+          X: 0.5
+          Y: 1.125
+          Z: 0.5
+        Rotation:
+          X: 0.0
+          Y: 90.0
+          # Allows decimal Z-axis rotation angles (0.0, 360.0)
+          # Also allows a random range value (0.0-360.0)
+          #
+          # Currently not recommended
+          Z: 0.0
+        Scale: 0.25
+  Grinder:
+    # Drop the finished item after grinder processing
+    Drop: true
+    # Require sneaking to interact with the grinder
+    StealthInteraction: true
+    # Use a custom grinder block
+    # Enabled: use blocks from compatible plugins (for example: CraftEngine)
+    # Disabled: use vanilla blocks
+    #
+    # CraftEngine block: craftengine <Key>:<ID>
+    Custom: false
+    Material: GRINDSTONE
+    # Grinder completion check delay (ticks)
+    # This also controls the interval for particles and sounds during grinding
+    CheckDelay: 20
+  Steamer:
+    # CraftEngine block: craftengine <Key>:<ID>
+    Material: BARREL
+    # Require sneaking to interact with the steamer
+    # Enabled: players must sneak to use chopping board features
+    # Disabled: players can interact directly without sneaking
+    StealthInteraction: true
+    OpenInventory:
+      # Opened container type
+      # See details: https://jd.papermc.io/paper/1.21.11/org/bukkit/event/inventory/InventoryType.html
+      Type: HOPPER
+      Title: <dark_gray>Steamer
+      # Only effective when Setting.Steamer.OpenInventory.Type is CHEST
+      Slot: 9
+    # Blocks that can provide heat to the steamer
+    #
+    # CraftEngine block: craftengine <Key>:<ID>
+    HeatControl:
+    - FURNACE
+    - SMOKER
+    # If the heat source block can be lit, ignite it after adding fuel
+    Ignite: true
+    # Allowed fuel items for the steamer, in seconds
+    # CraftEngine item: craftengine <Key>:<ID>
+    # MMOItems item: mmoitems <Type>:<ID>
+    Fuel:
+      STICK: 5
+      COAL: 80
+      CHARCOAL: 80
+    # Items that can provide moisture to the steamer
+    # Input item & output item & provided moisture value
+    # If no output item is wanted, set the output item to AIR
+    #
+    # CraftEngine item: craftengine <Key>:<ID>
+    # MMOItems item: mmoitems <Type>:<ID>
+    Moisture:
+    - minecraft WATER_BUCKET & minecraft BUCKET & 120
+    - minecraft POTION & minecraft GLASS_BOTTLE & 40
+    # If set to True, when steamer steam is 0, all cooking progress inside the steamer resets to 0
+    # If set to False, the current cooking progress is preserved
+    ResetToZero: true
+    # Steam production efficiency. This controls how item moisture converts 1 moisture into 10 steam per second
+    # That is 10 steam/s
+    SteamProductionEfficiency: 10
+    # Steam conversion efficiency. This controls how fast ingredients consume steam
+    # That is 1 steam/s
+    SteamConversionEfficiency: 1
+    # Steam consumption efficiency. This controls the steamer's default steam drain rate, even when no ingredients are cooking
+    # That is 1 steam/s
+    SteamConsumptionEfficiency: 1
+  Sound:
+    # Sound played when adding ingredients to the chopping board
+    ChoppingBoardAddItem: entity.item_frame.add_item
+    # Sound played when cutting ingredients on the chopping board
+    ChoppingBoardCutItem: item.axe.strip
+    # Sound played when a hand is cut while using the chopping board
+    ChoppingBoardCutHand: entity.player.hurt
+    # Sound played when adding ingredients to the wok
+    WokAddItem: block.anvil.hit
+    # Sound played when stir-frying ingredients in the wok
+    WokStirItem: block.lava.extinguish
+    # Sound played when a hand is burned while stir-frying in the wok
+    WokScald: entity.player.hurt_on_fire
+    # Sound played when taking ingredients out of the wok
+    WokTakeOffItem: entity.item.pickup
+    # Sound played when the grinder starts grinding
+    GrinderStart: block.grindstone.use
+  Particle:
+    ChoppingBoardCutItem:
+      # Particles shown when cutting ingredients on the chopping board
+      Type: CLOUD
+      Amount: 10
+      OffsetX: 0.5
+      OffsetY: 1.0
+      OffsetZ: 0.5
+      Speed: 0.05
+    WokStirItem:
+      # Particles shown when stir-frying ingredients in the wok
+      Type: CAMPFIRE_COSY_SMOKE
+      Amount: 10
+      OffsetX: 0.5
+      OffsetY: 1.0
+      OffsetZ: 0.5
+      Speed: 0.05
+    GrinderStart:
+      # Particles shown when the grinder starts grinding
+      Type: GLOW
+      Amount: 10
+      OffsetX: 0.5
+      OffsetY: 1.0
+      OffsetZ: 0.5
+      Speed: 0.05
+Messages:
+  WokContent: ' <gray>{ItemName} <dark_gray>x <yellow>{ItemAmount} <gray>Stir count:
+    <yellow>{Count}'
+  Title:
+    Grinder:
+      SubTitle: <gray>Please wait <green>{Time} <gray>seconds for grinding
+      MainTitle: <green>Grinding started!
+    Scald:
+      SubTitle: <gray>Careful with the hot wok! You took <red>{Damage} <gray>damage
+      MainTitle: '<red>Too hot! You got burned! '
+    CutHand:
+      MainTitle: '<red>Ouch! You cut your hand! '
+      SubTitle: <gray>Careful with the knife! You took <red>{Damage} <gray>damage
+  WokTop: '<gold>Ingredients in the wok:'
+  ActionBar:
+    RawFood: '<red>Oops! The dish is not fully cooked yet! '
+    AddFuel: '<green>Added fuel: <white>{Item} <dark_gray>| <green>Remaining burn
+      time: <yellow>{Second}s'
+    BurntFood: '<red>Oops! The heat was too high and the dish burned! '
+    StirCount: '<gray>Stir count: <green>{Count}'
+    TakeOffItem: '<gray>Tip: tap the chopping board with an empty hand to take off
+      the ingredient'
+    AddMoisture: '<green>Added item: <aqua>{Item} <dark_gray>| <green>Added moisture:
+      <aqua>{Moisture} <dark_gray>| <green>Current moisture: <blue>{Total}'
+    OnRunGrinder: '<red>The grinder is running! Please try again later! '
+    WokAddItem: '<green>Added <white>{Material} <green>to the wok! '
+    SteamerInfo: '<gray>Burn time: <yellow>{BurningTime}</yellow>s | Moisture: <aqua>{Moisture}</aqua>
+      | Steam: <white>{Steam}</white> | Cooking progress: <yellow>{Progress}</gray>'
+    SuccessRecipe: '<green>Perfect! You cooked a delicious dish! '
+    WokNoItem: '<red>The wok is empty. Add some ingredients! '
+    WokStirItem: <green>Stir-frying <gray>{Material}...
+    FailureRecipe: '<red>Cooking failed... The ingredients were wasted, but do not
+      give up! '
+    ErrorRecipe: <red>That is not how this dish is made! Think it over, chef.
+    CannotCut: '<red>Chef, this ingredient cannot be processed here! '
+    CutAmount: '<gray>Cutting progress: <green>{CurrentCount} <dark_gray>/ <green>{NeedCount}'
+    StirFriedTooQuickly: '<red>You stirred too quickly! The ingredients are not fully
+      cooked yet! '
+    SuccessGrinder: <green>Grinding succeeded!
+    ChoppingBoardTooFast: <red>Action too fast! Please wait a moment before continuing!
+    NoGrinderReplace: '<red>This item is too hard. The grinder cannot process it! '
+  Debug:
+    ChanceFormatError: '{Prefix} <red>Chance format error, using default value 100:
+      {Chance}'
+    PAPIParseError: '{Prefix} <red>PAPI placeholder parse error: {Error}'
+    RecipeNotFound: '{Prefix} <red>Recipe not found: {ItemMaterial}'
+    RewardFormatError: '{Prefix} <red>Reward format error. It must contain 4 parts:
+      {Reward}'
+    AmountFormatError: '{Prefix} <red>Amount format error, using default value 1:
+      {Amount}'
+    RewardProcessFailed: '{Prefix} <red>Failed to process reward: {ResultMaterial}'
+    AmountRangeFormatErrorMin: '{Prefix} <red>Amount range format error, using minimum
+      value: {Amount}'
+    PlayerCommandFailed: '{Prefix} <red>Command failed when executed as the player;
+      fell back to console: {Error}'
+    ItemIdMismatch: '{Prefix} <red>Item ID mismatch - Item: {ItemNamespace} {ItemId},
+      Recipe: {RecipeNamespace} {RecipeId}'
+    CommandExecuteFailed: '{Prefix} <red>Command execution failed: {Error}'
+    AmountRangeParseError: '{Prefix} <red>Amount range parse error, using default
+      value 1: {Amount}'
+    UnrecognizedItemType: '{Prefix} <red>Unrecognized item type. A full namespace
+      is required: {ItemKey}'
+    MinecraftItemCreateFailed: '{Prefix} <red>Failed to create vanilla item: {ItemKey}
+      Error: {Error}'
+    ItemRewardParseError: '{Prefix} <red>Item reward parse error: {Error}'
+    ConsoleCommandFailed: '{Prefix} <red>Console command execution failed: {Error}'
+    AmountRangeFormatErrorDirect: '{Prefix} <red>Amount range format error, using
+      direct parsing: {Amount}'
+    MinecraftNamespaceRequired: '{Prefix} <red>Vanilla items must use the minecraft
+      namespace: {ItemKey}'
+    CommandParseError: '{Prefix} <red>Command parse error: {Error}'
+  PluginLoad:
+    MMOItems: '{Prefix} <green>Detected MMOItems plugin'
+    CraftEngine: '{Prefix} <green>Detected CraftEngine plugin'
+    PlaceholderAPI: '{Prefix} <green>Detected PlaceholderAPI plugin'
+    NeigeItems: '{Prefix} <green>Detected NeigeItems plugin'
+  Reload:
+    LoadSteamerRecipe: '{Prefix} <green>Loaded {Amount} steamer recipe(s)'
+    LoadGrinderRecipe: '{Prefix} <green>Loaded {Amount} grinder process recipe(s)'
+    LoadChoppingBoardRecipe: '{Prefix} <green>Loaded {Amount} chopping board recipe(s)'
+    LoadWokRecipe: '{Prefix} <green>Loaded {Amount} wok recipe(s)'
+    LoadPlugin: '{Prefix} <green>CookieCooking has been reloaded!'
+  Prefix: <gray>[ <gradient:#FF80FF:#00FFFF>CookieCooking</gradient> ]</gray>
+  WokDown: '<gold>Total stir count: <yellow>{Count}'
+  NoPermission: '{Prefix} <red>Chef, you do not have the required permission! '
+  Load: '{Prefix} <green>Welcome to CookieCooking! Version {Version} is ready!'
+  Completed: <green>Completed!
+  NotStarted: <red>Not started!
+  InvalidMaterial: '{Prefix} <red>Chef, this ingredient {Material} does not seem right...'
+  Command:
+    NoItemInHand: <gray>You do not have an item in your hand
+  Startup:
+    Wiki: '{Prefix} <red>Wiki: <gray>https://github.com/LoveCookieee-java'
+    # QQGroup: '{Prefix} <red>QQ Group: <gray>299852340'
+    Discord: '{Prefix} <red>Discord: <gray>https://discord.gg/CCUNfyE4aZ'
+    Failed: '{Prefix} <red>Failed to start CookieCooking'
+    NoPlaceholderAPI: '{Prefix} <red>PlaceholderAPI is not installed on this server!'
+  # QQGroup: '{Prefix} <red>QQ Group: <gray>299852340'
+  WokHeatControl: '<gold>Heat level: <yellow>{Heat}'

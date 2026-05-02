@@ -1,0 +1,182 @@
+# ============================================
+# CookieCooking - Chopping Board Recipes
+# ============================================
+
+# --- RAU CỦ ---
+minecraft CARROT:
+  Count: 3
+  Output:
+  - minecraft GOLDEN_CARROT 1 100
+  OutputAmount: 1
+  Durability: 1
+  Permission: "chop.use"
+
+minecraft POTATO:
+  Count: 4
+  Output:
+  - minecraft BAKED_POTATO 1 100
+  OutputAmount: 1
+  Durability: 1
+  Permission: "chop.use"
+
+minecraft BEETROOT:
+  Count: 3
+  Output:
+  - minecraft BEETROOT_SOUP 1 80
+  - minecraft BEETROOT_SEEDS 1-2 30
+  OutputAmount: 1
+  Durability: 1
+  Permission: "chop.use"
+
+minecraft MELON_SLICE:
+  Count: 2
+  Output:
+  - minecraft MELON_SLICE 2-3 100
+  OutputAmount: 1
+  Durability: 1
+  Permission: "chop.use"
+
+minecraft PUMPKIN:
+  Count: 5
+  Output:
+  - minecraft PUMPKIN_PIE 1 100
+  - minecraft PUMPKIN_SEEDS 2-3 50
+  OutputAmount: 1
+  Durability: 1
+  Permission: "chop.use"
+
+# --- THỊT ---
+minecraft BEEF:
+  Count: 5
+  Output:
+  - minecraft COOKED_BEEF 1 90
+  - minecraft BONE 1 15
+  OutputAmount: 1
+  Durability: 2
+  Permission: "chop.use"
+  Damage:
+    Chance: 12
+    Value: 2
+
+minecraft PORKCHOP:
+  Count: 4
+  Output:
+  - minecraft COOKED_PORKCHOP 1 90
+  - minecraft BONE 1 10
+  OutputAmount: 1
+  Durability: 1
+  Permission: "chop.use"
+  Damage:
+    Chance: 10
+    Value: 2
+
+minecraft CHICKEN:
+  Count: 4
+  Output:
+  - minecraft COOKED_CHICKEN 1 90
+  - minecraft FEATHER 1-2 40
+  - minecraft BONE 1 20
+  OutputAmount: 1
+  Durability: 1
+  Permission: "chop.use"
+  Damage:
+    Chance: 8
+    Value: 1
+
+minecraft MUTTON:
+  Count: 4
+  Output:
+  - minecraft COOKED_MUTTON 1 100
+  OutputAmount: 1
+  Durability: 1
+  Permission: "chop.use"
+  Damage:
+    Chance: 8
+    Value: 1
+
+minecraft RABBIT:
+  Count: 3
+  Output:
+  - minecraft COOKED_RABBIT 1 100
+  - minecraft RABBIT_HIDE 1 25
+  OutputAmount: 1
+  Durability: 1
+  Permission: "chop.use"
+
+# --- HẢI SẢN ---
+minecraft COD:
+  Count: 3
+  Output:
+  - minecraft COOKED_COD 1 100
+  - minecraft BONE_MEAL 1 20
+  OutputAmount: 1
+  Durability: 1
+  Permission: "chop.use"
+  Damage:
+    Chance: 5
+    Value: 1
+
+minecraft SALMON:
+  Count: 3
+  Output:
+  - minecraft COOKED_SALMON 1 100
+  - minecraft BONE_MEAL 1 20
+  OutputAmount: 1
+  Durability: 1
+  Permission: "chop.use"
+  Damage:
+    Chance: 5
+    Value: 1
+
+minecraft PUFFERFISH:
+  Count: 6
+  Output:
+  - minecraft PUFFERFISH 1 60
+  - minecraft SLIME_BALL 1 30
+  OutputAmount: 1
+  Durability: 3
+  Permission: "chop.use"
+  Damage:
+    Chance: 35
+    Value: 4
+
+# --- TRÁI CÂY & KHÁC ---
+minecraft APPLE:
+  Count: 2
+  Output:
+  - minecraft APPLE 2 100
+  OutputAmount: 1
+  Durability: 1
+  Permission: "chop.use"
+
+minecraft SUGAR_CANE:
+  Count: 3
+  Output:
+  - minecraft SUGAR 2-3 100
+  OutputAmount: 1
+  Durability: 1
+  Permission: "chop.use"
+
+minecraft BROWN_MUSHROOM:
+  Count: 2
+  Output:
+  - minecraft BROWN_MUSHROOM 2 100
+  OutputAmount: 1
+  Durability: 1
+  Permission: "chop.use"
+
+minecraft RED_MUSHROOM:
+  Count: 2
+  Output:
+  - minecraft RED_MUSHROOM 2 100
+  OutputAmount: 1
+  Durability: 1
+  Permission: "chop.use"
+
+minecraft BONE:
+  Count: 6
+  Output:
+  - minecraft BONE_MEAL 3-4 100
+  OutputAmount: 1
+  Durability: 3
+  Permission: "chop.use"
