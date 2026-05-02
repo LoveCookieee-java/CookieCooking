@@ -23,11 +23,11 @@ Hệ thống cung cấp 4 trạm làm việc chính:
 ## 🛠️ 2. Cài Đặt & Lệnh Cơ Bản
 
 ### Lệnh (Commands)
-Tất cả các lệnh đều bắt đầu bằng `/cookiecooking` hoặc `/cook`.
+Tất cả các lệnh đều bắt đầu bằng `/cookiecooking` hoặc `/cooking`.
 
-*   `/cook reload`: Tải lại cấu hình (Config.yml) và tất cả công thức (Recipes).
-*   `/cook clear`: Xóa các thực thể Item Display bị lỗi ở gần người chơi (bán kính 0.5 block).
-*   `/cook hand`: Xem thông tin NBT của vật phẩm đang cầm trên tay (hữu ích cho debug/làm recipe).
+*   `/cooking reload`: Tải lại cấu hình (Config.yml) và tất cả công thức (Recipes).
+*   `/cooking clear`: Xóa các thực thể Item Display bị lỗi ở gần người chơi (bán kính 0.5 block).
+*   `/cooking hand`: Xem thông tin NBT của vật phẩm đang cầm trên tay (hữu ích cho debug/làm recipe).
 
 ### Permissions (Quyền)
 Bạn cần cấp các quyền sau cho người chơi hoặc staff:
@@ -178,6 +178,6 @@ minecraft POTATO:
 ## 📝 7. Một Số Lưu Ý Cho Admin/Dev
 
 1. **Namespace:** Tuyệt đối không quên ghi Namespace (ví dụ: `minecraft `) trước tên Item. Khoảng trắng rất quan trọng: `minecraft APPLE`.
-2. **Reload Plugin:** Sau khi chỉnh sửa file `.yml`, luôn chạy lệnh `/jk reload` để áp dụng. Đôi khi nếu cấu hình sai nghiêm trọng, recipe sẽ không được load (kiểm tra console logs).
-3. **Lỗi Hologram:** Nếu đập phá Block Trạm khi đang nấu bị kẹt dòng chữ lơ lửng, hãy đứng sát vị trí đó và gõ `/jk clear`.
+2. **Reload Plugin:** Sau khi chỉnh sửa file `.yml`, luôn chạy lệnh `/cooking reload` để áp dụng. Đôi khi nếu cấu hình sai nghiêm trọng, recipe sẽ không được load (kiểm tra console logs).
+3. **Lỗi Hologram:** Nếu đập phá Block Trạm khi đang nấu bị kẹt dòng chữ lơ lửng, hãy đứng sát vị trí đó và gõ `/cooking clear`.
 4. **Việt Hóa:** Mọi tin nhắn (Messages) và Hologram (Actionbar, Title) đều có thể được Việt hóa và tùy chỉnh màu sắc bằng chuẩn MiniMessage (ví dụ: `<red>`, `<gradient:blue:green>`) trong file `Config.yml`.

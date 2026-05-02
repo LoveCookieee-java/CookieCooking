@@ -28,4 +28,4 @@ Bạn có thể tìm thấy toàn bộ cách thức cài đặt, phân quyền, 
 
 1. Đảm bảo server của bạn đã cài đặt **PySpigot**.
 2. Đặt file `CookieCooking.py` và toàn bộ thư mục `CookieCooking` vào đúng vị trí thư mục script của PySpigot.
-3. Khởi động server hoặc chạy lệnh `/cc reload` trong game để tải cấu hình và công thức.
+3. Khởi động server hoặc chạy lệnh `/cooking reload` trong game để tải cấu hình và công thức.

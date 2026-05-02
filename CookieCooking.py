@@ -3025,7 +3025,7 @@ def TabCommandExecute(sender, label, args):
         return ["reload", "clear", "hand"]
     return ["reload"]
 
-ps.command.registerCommand(CommandExecute, TabCommandExecute, "cookiecooking", ["cook"], "")
+ps.command.registerCommand(CommandExecute, TabCommandExecute, "cookiecooking", ["cooking"], "")
 
 
 def InitializePlugin():
