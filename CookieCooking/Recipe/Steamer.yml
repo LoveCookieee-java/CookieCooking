@@ -1,8 +1,3 @@
-# ============================================
-# CookieCooking - Steamer Recipes
-# ============================================
-
-# --- RAU CỦ ---
 minecraft POTATO:
   Output: minecraft BAKED_POTATO
   Steam: 60
@@ -28,7 +23,6 @@ minecraft BROWN_MUSHROOM:
   Steam: 60
   Permission: "steam.use"
 
-# --- THỊT ---
 minecraft BEEF:
   Output: minecraft COOKED_BEEF
   Steam: 120
@@ -54,7 +48,6 @@ minecraft RABBIT:
   Steam: 90
   Permission: "steam.use"
 
-# --- HẢI SẢN ---
 minecraft COD:
   Output: minecraft COOKED_COD
   Steam: 80
@@ -70,7 +63,6 @@ minecraft KELP:
   Steam: 40
   Permission: "steam.use"
 
-# --- BÁNH ---
 minecraft WHEAT:
   Output: minecraft BREAD
   Steam: 80
@@ -86,7 +78,6 @@ minecraft SWEET_BERRIES:
   Steam: 60
   Permission: "steam.use"
 
-# --- CAO CẤP ---
 minecraft APPLE:
   Output: minecraft GOLDEN_APPLE
   Steam: 250

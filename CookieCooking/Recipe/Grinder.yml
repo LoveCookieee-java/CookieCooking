@@ -1,8 +1,3 @@
-# ============================================
-# CookieCooking - Grinder Recipes
-# ============================================
-
-# --- NGŨ CỐC ---
 minecraft WHEAT:
   Output:
   - minecraft SUGAR 2 100
@@ -33,7 +28,6 @@ minecraft PUMPKIN_SEEDS:
   GrindingTime: 3
   Permission: "grinder.use"
 
-# --- XƯƠNG ---
 minecraft BONE:
   Output:
   - minecraft BONE_MEAL 3-4 100
@@ -46,7 +40,6 @@ minecraft LEATHER:
   GrindingTime: 8
   Permission: "grinder.use"
 
-# --- KHOÁNG SẢN ---
 minecraft COBBLESTONE:
   Output:
   - minecraft GRAVEL 1 100
@@ -93,7 +86,6 @@ minecraft RAW_GOLD:
   GrindingTime: 18
   Permission: "grinder.use"
 
-# --- HIẾM ---
 minecraft LAPIS_LAZULI:
   Output:
   - minecraft LAPIS_LAZULI 2-3 100
@@ -143,7 +135,6 @@ minecraft SHULKER_SHELL:
   GrindingTime: 30
   Permission: "grinder.use"
 
-# --- THẢO MỘC ---
 minecraft DANDELION:
   Output:
   - minecraft YELLOW_DYE 2 100

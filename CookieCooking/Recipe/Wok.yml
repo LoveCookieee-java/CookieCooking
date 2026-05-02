@@ -1,8 +1,3 @@
-# ============================================
-# CookieCooking - Wok Recipes
-# ============================================
-
-# --- LỬA NHỎ (CAMPFIRE = 1) ---
 minecraft COOKED_CHICKEN:
   Count: "4-6"
   HeatControl: 1
@@ -37,7 +32,6 @@ minecraft MUSHROOM_STEW:
   BURNT: minecraft CHARCOAL
   Permission: "fry.use"
 
-# --- LỬA VỪA (MAGMA_BLOCK = 2) ---
 minecraft COOKED_BEEF:
   Count: "10-14"
   HeatControl: 2
@@ -101,7 +95,6 @@ minecraft COOKED_SALMON:
   BURNT: minecraft CHARCOAL
   Permission: "fry.use"
 
-# --- LỬA LỚN (LAVA = 3) ---
 minecraft SUSPICIOUS_STEW:
   Count: "18-24"
   HeatControl: 3

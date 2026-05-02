@@ -1,8 +1,3 @@
-# ============================================
-# CookieCooking - Chopping Board Recipes
-# ============================================
-
-# --- RAU CỦ ---
 minecraft CARROT:
   Count: 3
   Output:
@@ -45,7 +40,6 @@ minecraft PUMPKIN:
   Durability: 1
   Permission: "chop.use"
 
-# --- THỊT ---
 minecraft BEEF:
   Count: 5
   Output:
@@ -103,7 +97,6 @@ minecraft RABBIT:
   Durability: 1
   Permission: "chop.use"
 
-# --- HẢI SẢN ---
 minecraft COD:
   Count: 3
   Output:
@@ -140,7 +133,6 @@ minecraft PUFFERFISH:
     Chance: 35
     Value: 4
 
-# --- TRÁI CÂY & KHÁC ---
 minecraft APPLE:
   Count: 2
   Output:
