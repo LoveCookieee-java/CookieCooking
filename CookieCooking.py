@@ -18,6 +18,7 @@ from org.bukkit.event.inventory import InventoryType, InventoryCloseEvent
 
 from java.lang import System
 from java.time import Duration
+from java.util import UUID
 from org.joml import Vector3f, Quaternionf
 
 from net.kyori.adventure.text import Component, TextReplacementConfig
@@ -46,6 +47,7 @@ class ConfigManager:
             if comments is not None:
                 configFile.setComments(path, comments)
 
+    # MODIFIED
     @staticmethod
     def loadConfig():
 
@@ -266,6 +268,24 @@ class ConfigManager:
             u"Steam consumption efficiency. This controls the steamer's default steam drain rate, even when no ingredients are cooking",
             u"That is 1 steam/s"
         ])
+        ConfigManager.setConfigValue(configFile, "Setting.Steamer.DisplayEntity.Item.Offset.X", 0.5)
+        ConfigManager.setConfigValue(configFile, "Setting.Steamer.DisplayEntity.Item.Offset.Y", 1.02)
+        ConfigManager.setConfigValue(configFile, "Setting.Steamer.DisplayEntity.Item.Offset.Z", 0.5)
+        ConfigManager.setConfigValue(configFile, "Setting.Steamer.DisplayEntity.Item.Rotation.X", 90.0)
+        ConfigManager.setConfigValue(configFile, "Setting.Steamer.DisplayEntity.Item.Rotation.Y", 0.0)
+        ConfigManager.setConfigValue(configFile, "Setting.Steamer.DisplayEntity.Item.Rotation.Z", "0.0-90.0", [
+            u"Allows decimal Z-axis rotation angles (0.0, 360.0)",
+            u"Also allows a random range value (0.0-360.0)"])
+        ConfigManager.setConfigValue(configFile, "Setting.Steamer.DisplayEntity.Item.Scale", 0.5)
+        ConfigManager.setConfigValue(configFile, "Setting.Steamer.DisplayEntity.Block.Offset.X", 0.5)
+        ConfigManager.setConfigValue(configFile, "Setting.Steamer.DisplayEntity.Block.Offset.Y", 1.125)
+        ConfigManager.setConfigValue(configFile, "Setting.Steamer.DisplayEntity.Block.Offset.Z", 0.5)
+        ConfigManager.setConfigValue(configFile, "Setting.Steamer.DisplayEntity.Block.Rotation.X", 0.0)
+        ConfigManager.setConfigValue(configFile, "Setting.Steamer.DisplayEntity.Block.Rotation.Y", 90.0)
+        ConfigManager.setConfigValue(configFile, "Setting.Steamer.DisplayEntity.Block.Rotation.Z", 0.0, [
+            u"Allows decimal Z-axis rotation angles (0.0, 360.0)",
+            u"Also allows a random range value (0.0-360.0)"])
+        ConfigManager.setConfigValue(configFile, "Setting.Steamer.DisplayEntity.Block.Scale", 0.25)
 
 
         Messages = {
@@ -293,6 +313,8 @@ class ConfigManager:
             "Messages.ActionBar.TakeOffItem": u"<gray>Tip: tap the chopping board with an empty hand to take off the ingredient",
             "Messages.ActionBar.WokNoItem": u"<red>The wok is empty. Add some ingredients! ",
             "Messages.ActionBar.WokAddItem": u"<green>Added <white>{Material} <green>to the wok! ",
+            "Messages.ActionBar.NeedMoreIngredient": u"<red>Need one more ingredient",
+            "Messages.ActionBar.MissingIngredient": u"<red>Need one more ingredient: <white>{Item}",
             "Messages.ActionBar.CutAmount": u"<gray>Cutting progress: <green>{CurrentCount} <dark_gray>/ <green>{NeedCount}",
             "Messages.ActionBar.StirCount": u"<gray>Stir count: <green>{Count}",
             "Messages.ActionBar.ErrorRecipe": u"<red>That is not how this dish is made! Think it over, chef.",
@@ -1282,6 +1304,7 @@ def ChoppingBoardBreak(Event, EventType):
     Data.save()
     return True
 
+# MODIFIED
 def WokBreak(Event, EventType):
 
     BreakBlock = EventUtils.getBreakBlock(Event, EventType)
@@ -1289,16 +1312,17 @@ def WokBreak(Event, EventType):
     FileKey = GetFileKey(BreakBlock)
     hasExistingDisplay = Data.contains("Wok." + FileKey)
     if not hasExistingDisplay: return False
-    DisplayLocation = CalculateDisplayLocation(BreakBlock, "Wok")
-    ItemDisplayEntity = FindNearbyDisplay(DisplayLocation)
-    if ItemDisplayEntity:
-        for Display in ItemDisplayEntity:
-            if Display and not Display.isDead():
-                DisplayItem = Display.getItemStack()
-                if DisplayItem:
-                    ItemEntity = BreakBlock.getWorld().dropItem(Display.getLocation(), DisplayItem)
-                    ItemEntity.setPickupDelay(0)
-                Display.remove()
+    DropLocation = BreakBlock.getLocation().add(0.5, 1.0, 0.5)
+    ItemList = Data.getStringList("Wok." + FileKey + ".Items")
+    for ItemEntry in ItemList:
+        ParsedItem = ParseWokItemEntry(ItemEntry)
+        if not ParsedItem:
+            continue
+        ItemStackToDrop = ToolUtils.createItemStack(ParsedItem["identifier"], ParsedItem["amount"])
+        if ItemStackToDrop:
+            ItemEntity = BreakBlock.getWorld().dropItem(DropLocation, ItemStackToDrop)
+            ItemEntity.setPickupDelay(0)
+    ClearStoredDisplays(BreakBlock, "Wok", GetDisplayDataPath("Wok", FileKey))
     Data.set("Wok." + FileKey, None)
     Data.save()
     return True
@@ -1330,6 +1354,7 @@ def SteamerBreak(Event, EventType):
         return HandleHeatSourceBlockBreak(BreakBlock)
     return False
 
+# MODIFIED
 def HandleSteamerBlockBreak(SteamerBlock):
 
     try:
@@ -1339,6 +1364,7 @@ def HandleSteamerBlockBreak(SteamerBlock):
             return False
         ExtinguishHeatSource(FileKey)
         DropSteamerItems(SteamerBlock, FileKey)
+        ClearStoredDisplays(SteamerBlock, "Steamer", GetDisplayDataPath("Steamer", FileKey))
         Data.set(SteamerDataPath, None)
         Data.save()
         CleanupSteamerTempData(FileKey)
@@ -1358,6 +1384,7 @@ def HandleHeatSourceBlockBreak(HeatSourceBlock):
         MiniMessageUtils.sendMessage(Console, str(e))
         return False
 
+# MODIFIED
 def DropSteamerItems(SteamerBlock, FileKey):
 
     try:
@@ -1376,21 +1403,15 @@ def DropSteamerItems(SteamerBlock, FileKey):
             if itemIdentifier != "AIR":
                 try:
                     CurrentProgress = CookingProgress[i] if i < len(CookingProgress) else 0
-                    if SteamerRecipe.contains(itemIdentifier):
-                        requiredSteam = SteamerRecipe.getInt(itemIdentifier + ".Steam", 0)
-                        outputItem = SteamerRecipe.getString(itemIdentifier + ".Output")
-                        if outputItem and CurrentProgress >= requiredSteam:
-                            itemToDrop = outputItem
-                        else:
-                            itemToDrop = itemIdentifier
-                    else:
-                        for recipeKey in SteamerRecipe.getKeys(False):
-                            outputItem = SteamerRecipe.getString(recipeKey + ".Output")
-                            if outputItem and outputItem == itemIdentifier:
-                                itemToDrop = itemIdentifier
-                                break
-                        else:
-                            itemToDrop = itemIdentifier
+                    itemToDrop = itemIdentifier
+                    SingleInput = [NormalizeItemIdentifier(itemIdentifier)]
+                    for Recipe in GetRecipeDefinitions(SteamerRecipe, None, True):
+                        if RecipeInputsMatchExactly(SingleInput, Recipe["expandedInputs"]):
+                            requiredSteam = GetRecipeIntValue(Recipe, "Steam", 0)
+                            outputItem = Recipe["output"]
+                            if outputItem and CurrentProgress >= requiredSteam:
+                                itemToDrop = outputItem
+                            break
                     itemStack = ToolUtils.createItemStack(itemToDrop, 1)
                     if itemStack:
                         itemEntity = SteamerBlock.getWorld().dropItem(DropLocation, itemStack)
@@ -1599,6 +1620,7 @@ def ChoppingBoardInteraction(Event, EventType):
             return True
     return False
 
+# MODIFIED
 def WokInteraction(Event, EventType):
 
     ClickPlayer = EventUtils.getPlayer(Event, EventType)
@@ -1680,6 +1702,11 @@ def WokInteraction(Event, EventType):
                     MiniMessageUtils.sendActionBar(ClickPlayer, Config.getString("Messages.ActionBar.WokNoItem"))
                     EventUtils.setCancelled(Event, EventType, True)
                     return True
+                MissingInputs = GetWokMissingIngredients(ItemList, ClickPlayer, HeatLevel)
+                if MissingInputs:
+                    SendMissingIngredientMessage(ClickPlayer, MissingInputs)
+                    EventUtils.setCancelled(Event, EventType, True)
+                    return True
                 LastStirTime = Data.getLong("Wok." + FileKey + ".LastStirTime", 0)
                 StirCount = Data.getInt("Wok." + FileKey + ".Count", 0)
                 CurrentTime = System.currentTimeMillis()
@@ -1738,8 +1765,6 @@ def WokInteraction(Event, EventType):
             CurrentItemIdentifier = ToolUtils.getItemIdentifier(MainHandItem)
             if hasExistingDisplay:
                 NeedAddItem = False
-                DisplayLocation = CalculateDisplayLocation(ClickBlock, "Wok", MainHandItem)
-                NearbyDisplays = FindNearbyDisplay(DisplayLocation)
                 for Index, ItemEntry in enumerate(ItemList):
                     Parts = ItemEntry.split(" ")
                     if len(Parts) >= 2:
@@ -1749,33 +1774,20 @@ def WokInteraction(Event, EventType):
                             StirCount = int(Parts[3])
                             ItemList[Index] = ItemTypeID + " " + str(CurrentAmount) + " " + str(StirCount)
                             NeedAddItem = True
-                            for Display in NearbyDisplays:
-                                if Display and not Display.isDead():
-                                    DisplayItem = Display.getItemStack()
-                                    if DisplayItem and ToolUtils.getItemIdentifier(DisplayItem) == CurrentItemIdentifier:
-                                        DisplayItem.setAmount(CurrentAmount)
-                                        Display.setItemStack(DisplayItem)
-                                        break
                             break
                 if not NeedAddItem:
-                    ItemListLength = len(ItemList)
-                    ExtraOffset = 0.0001 * ItemListLength
                     ItemList.append(CurrentItemIdentifier + " 1 0")
-                    DisplayItem = MainHandItem.clone()
-                    DisplayLocation = CalculateDisplayLocation(ClickBlock, "Wok", MainHandItem, ExtraOffset)
-                    CreateItemDisplay(DisplayLocation, DisplayItem, "Wok")
                 Data.set("Wok." + FileKey + ".Items", list(ItemList))
+                RefreshWokDisplays(ClickBlock, FileKey, ItemList)
                 Data.save()
             else:
-                if not BottomBlockType in HeatControl:
+                if HeatLevel <= 0:
                     return False
                 SaveValue = CurrentItemIdentifier + " 1 0"
                 Data.set("Wok." + FileKey + ".Items", [SaveValue])
                 Data.set("Wok." + FileKey + ".Count", 0)
+                RefreshWokDisplays(ClickBlock, FileKey, [SaveValue])
                 Data.save()
-                DisplayItem = MainHandItem.clone()
-                DisplayLocation = CalculateDisplayLocation(ClickBlock, "Wok", MainHandItem)
-                CreateItemDisplay(DisplayLocation, DisplayItem, "Wok")
             MiniMessageUtils.sendActionBar(ClickPlayer, Config.getString("Messages.ActionBar.WokAddItem"),
                 {"Material": ToolUtils.getItemDisplayName(MainHandItem)})
             RemoveItemToPlayer(ClickPlayer, MainHandItem)
@@ -1812,177 +1824,137 @@ def WokInteraction(Event, EventType):
             if Quantity <= 0:
                 ItemList.pop()
                 if not ItemList:
+                    ClearStoredDisplays(ClickBlock, "Wok", GetDisplayDataPath("Wok", FileKey))
                     Data.set("Wok." + FileKey, None)
                 else:
                     Data.set("Wok." + FileKey + ".Items", ItemList)
-                DisplayLocation = CalculateDisplayLocation(ClickBlock, "Wok", ItemToGive)
-                NearbyDisplays = FindNearbyDisplay(DisplayLocation)
-                if NearbyDisplays:
-                    TargetIdentifier = ToolUtils.getItemIdentifier(ItemToGive)
-                    for display in NearbyDisplays:
-                        if display and not display.isDead():
-                            displayItem = display.getItemStack()
-                            if displayItem and ToolUtils.getItemIdentifier(displayItem) == TargetIdentifier:
-                                display.remove()
-                                break
+                    RefreshWokDisplays(ClickBlock, FileKey, ItemList)
             else:
                 ItemList[-1] = "{} {} {} {}".format(ItemType, ItemID, Quantity, StirTimes)
                 Data.set("Wok." + FileKey + ".Items", ItemList)
-                DisplayLocation = CalculateDisplayLocation(ClickBlock, "Wok", ItemToGive)
-                NearbyDisplays = FindNearbyDisplay(DisplayLocation)
-                if NearbyDisplays:
-                    TargetIdentifier = ToolUtils.getItemIdentifier(ItemToGive)
-                    for display in NearbyDisplays:
-                        if display and not display.isDead():
-                            displayItem = display.getItemStack()
-                            if displayItem and ToolUtils.getItemIdentifier(displayItem) == TargetIdentifier:
-                                displayItem.setAmount(Quantity)
-                                display.setItemStack(displayItem)
-                                break
+                RefreshWokDisplays(ClickBlock, FileKey, ItemList)
             Data.save()
             EventUtils.setCancelled(Event, EventType, True)
             return True
     return False
 
+# MODIFIED
 def GetWokOutput(DataFile, FileKey, ClickPlayer, ClickBlock, HeatLevel=0):
 
     MainHandItem = ClickPlayer.getInventory().getItemInMainHand()
-    DataStirFryAmount = DataFile.getInt("Wok." + FileKey + ".Count")
-    if DataStirFryAmount == 0:
-        return False
     ItemList = DataFile.getStringList("Wok." + FileKey + ".Items")
     if not ItemList:
         MiniMessageUtils.sendActionBar(ClickPlayer, Config.getString("Messages.ActionBar.WokNoItem"))
         return False
-    RecipeKeys = WokRecipe.getKeys(False)
-    for RecipeKey in RecipeKeys:
-        RecipePermission = WokRecipe.getString(RecipeKey + ".Permission")
-        if RecipePermission and not EventUtils.getPermission(ClickPlayer, RecipePermission):
-            continue
-        RecipeHeat = WokRecipe.getInt(RecipeKey + ".HeatControl", 0)
-        if RecipeHeat != int(HeatLevel) and int(HeatLevel) != 0:
-            continue
-        RecipeItemList = WokRecipe.getStringList(RecipeKey + ".Item")
-        if len(ItemList) != len(RecipeItemList):
-            continue
-        Match = True
-        GreaterThan = 0
-        LessThan = 0
-        Tolerance = WokRecipe.getInt(RecipeKey + ".FaultTolerance", 0)
-        Amount = 0
-        for Idx in range(len(ItemList)):
-            ItemEntry = ItemList[Idx].split(" ")
-            RecipeEntry = RecipeItemList[Idx].split(" ")
-            if len(ItemEntry) >= 2 and len(RecipeEntry) >= 2:
-                item_namespace = ItemEntry[0]
-                item_id = ItemEntry[1]
-                recipe_namespace = RecipeEntry[0]
-                recipe_id = RecipeEntry[1]
-                if item_namespace.lower() == "minecraft" and recipe_namespace.lower() == "minecraft":
-                    if item_id.lower() != recipe_id.lower():
-                        Match = False
-                        break
-                else:
-                    if item_namespace != recipe_namespace or item_id != recipe_id:
-                        Match = False
-                        break
-            else:
-                if ItemList[Idx] != RecipeItemList[Idx]:
-                    Match = False
-                    break
-            RecipeStirFry = RecipeEntry[3] if len(RecipeEntry) >= 4 else "0"
-            ItemStirFry = int(ItemEntry[3]) if len(ItemEntry) >= 4 else 0
-            if "-" in RecipeStirFry:
-                try:
-                    MinValue, MaxValue = map(int, RecipeStirFry.split("-"))
-                    if ItemStirFry < MinValue:
-                        LessThan += 1
-                        Amount += 1
-                    elif ItemStirFry > MaxValue:
-                        GreaterThan += 1
-                        Amount += 1
-                except ValueError:
-                    pass
-            else:
-                try:
-                    RequiredStirFry = int(RecipeStirFry)
-                    if ItemStirFry < RequiredStirFry:
-                        LessThan += 1
-                        Amount += 1
-                    elif ItemStirFry > RequiredStirFry:
-                        GreaterThan += 1
-                        Amount += 1
-                except ValueError:
-                    pass
-            if Amount > Tolerance:
-                Match = False
-                break
-        if Match:
+    MissingInputs = GetWokMissingIngredients(ItemList, ClickPlayer, HeatLevel)
+    if MissingInputs:
+        SendMissingIngredientMessage(ClickPlayer, MissingInputs)
+        return True
+    DataStirFryAmount = DataFile.getInt("Wok." + FileKey + ".Count")
+    if DataStirFryAmount == 0:
+        return False
+    Recipe = FindWokRecipeByIngredients(ItemList, ClickPlayer, HeatLevel)
+    if not Recipe:
+        if Config.getBoolean("Setting.Wok.Failure.Enable"):
             RemoveItemToPlayer(ClickPlayer, MainHandItem)
-            StirFryAmount = WokRecipe.get(RecipeKey + ".Count")
-            if isinstance(StirFryAmount, basestring) and "-" in StirFryAmount:
-                try:
-                    minValue, maxValue = map(int, StirFryAmount.split("-"))
-                    MaxValue = max(minValue, maxValue)
-                    MinValue = min(minValue, maxValue)
-                except ValueError:
-                    MaxValue = WokRecipe.getInt(RecipeKey + ".Count")
-                    MinValue = MaxValue
-            else:
-                MaxValue = WokRecipe.getInt(RecipeKey + ".Count")
-                MinValue = MaxValue
-            LastStirTime = DataFile.getLong("Wok." + FileKey + ".LastStirTime", 0)
-            CurrentTime = System.currentTimeMillis()
-            if CurrentTime - LastStirTime > Config.getInt("Setting.Wok.TimeOut") * 1000:
-                BurntItem = WokRecipe.getString(RecipeKey + ".BURNT")
-                OutputWokItem(RecipeKey, BurntItem, WokRecipe, ClickPlayer, DataFile, FileKey, ClickBlock)
-                MiniMessageUtils.sendActionBar(ClickPlayer, Config.getString("Messages.ActionBar.BurntFood"))
-                return True
-            if DataStirFryAmount < MinValue:
-                RawItem = WokRecipe.getString(RecipeKey + ".RAW")
-                OutputWokItem(RecipeKey, RawItem, WokRecipe, ClickPlayer, DataFile, FileKey, ClickBlock)
-                MiniMessageUtils.sendActionBar(ClickPlayer, Config.getString("Messages.ActionBar.RawFood"))
-                return True
-            elif DataStirFryAmount > MaxValue:
-                BurntItem = WokRecipe.getString(RecipeKey + ".BURNT")
-                OutputWokItem(RecipeKey, BurntItem, WokRecipe, ClickPlayer, DataFile, FileKey, ClickBlock)
-                MiniMessageUtils.sendActionBar(ClickPlayer, Config.getString("Messages.ActionBar.BurntFood"))
-                return True
-            if Config.getBoolean("Setting.Wok.Failure.Enable"):
-                Chance = Config.getInt("Setting.Wok.Failure.Chance")
-                if random.randint(1, 100) <= Chance:
-                    ErrorRecipe = Config.getString("Setting.Wok.Failure.Type")
-                    OutputWokItem(RecipeKey, ErrorRecipe, WokRecipe, ClickPlayer, DataFile, FileKey, ClickBlock)
-                    MiniMessageUtils.sendActionBar(ClickPlayer, Config.getString("Messages.ActionBar.FailureRecipe"))
-                    return True
-            if Amount <= Tolerance:
-                OutputWokItem(RecipeKey, RecipeKey, WokRecipe, ClickPlayer, DataFile, FileKey, ClickBlock)
-                MiniMessageUtils.sendActionBar(ClickPlayer, Config.getString("Messages.ActionBar.SuccessRecipe"))
-                return True
-            elif GreaterThan > LessThan:
-                BurntItem = WokRecipe.getString(RecipeKey + ".BURNT")
-                OutputWokItem(RecipeKey, BurntItem, WokRecipe, ClickPlayer, DataFile, FileKey, ClickBlock)
-                MiniMessageUtils.sendActionBar(ClickPlayer, Config.getString("Messages.ActionBar.BurntFood"))
-                return True
-            elif LessThan > GreaterThan:
-                RawItem = WokRecipe.getString(RecipeKey + ".RAW")
-                OutputWokItem(RecipeKey, RawItem, WokRecipe, ClickPlayer, DataFile, FileKey, ClickBlock)
-                MiniMessageUtils.sendActionBar(ClickPlayer, Config.getString("Messages.ActionBar.RawFood"))
-                return True
-        if not Match:
-            MiniMessageUtils.sendMessage(Console, Config.getString("Messages.Debug.ItemIdMismatch"),
-                {"Prefix": Prefix, "ItemNamespace": item_namespace, "ItemId": item_id, "RecipeNamespace": recipe_namespace, "RecipeId": recipe_id})
+            ErrorRecipe = Config.getString("Setting.Wok.Failure.Type")
+            OutputWokItem("Invalid", ErrorRecipe, WokRecipe, ClickPlayer, DataFile, FileKey, ClickBlock)
+            MiniMessageUtils.sendActionBar(ClickPlayer, Config.getString("Messages.ActionBar.ErrorRecipe"))
+            return True
+        return False
+
+    RemoveItemToPlayer(ClickPlayer, MainHandItem)
+    RecipeKey = Recipe["key"]
+    WokItemMap = GetWokItemMap(ItemList)
+    GreaterThan = 0
+    LessThan = 0
+    Amount = 0
+    Tolerance = GetRecipeIntValue(Recipe, "FaultTolerance", 0)
+    for RecipeEntry in Recipe["inputEntries"]:
+        Ingredient = ParseRecipeIngredientEntry(RecipeEntry, 1)
+        if not Ingredient:
+            continue
+        NormalizedIdentifier = Ingredient["normalized"]
+        if NormalizedIdentifier not in WokItemMap:
+            Amount = Tolerance + 1
+            break
+        ItemStirFry = WokItemMap[NormalizedIdentifier]["stir"]
+        RecipeStirFry = ParseWokRecipeStirRequirement(RecipeEntry)
+        StirMismatch = CountWokStirMismatch(ItemStirFry, RecipeStirFry)
+        if StirMismatch < 0:
+            LessThan += 1
+            Amount += 1
+        elif StirMismatch > 0:
+            GreaterThan += 1
+            Amount += 1
+
+    HasCountRequirement = RecipeHasField(Recipe, "Count")
+    StirFryAmount = GetRecipeValue(Recipe, "Count")
+    if HasCountRequirement and isinstance(StirFryAmount, basestring) and "-" in StirFryAmount:
+        try:
+            RangeStart, RangeEnd = map(int, StirFryAmount.split("-"))
+            MaxValue = max(RangeStart, RangeEnd)
+            MinValue = min(RangeStart, RangeEnd)
+        except ValueError:
+            MaxValue = GetRecipeIntValue(Recipe, "Count", 0)
+            MinValue = MaxValue
+    elif HasCountRequirement:
+        MaxValue = GetRecipeIntValue(Recipe, "Count", 0)
+        MinValue = MaxValue
+    else:
+        MinValue = 0
+        MaxValue = DataStirFryAmount
+    LastStirTime = DataFile.getLong("Wok." + FileKey + ".LastStirTime", 0)
+    CurrentTime = System.currentTimeMillis()
+    RawItem = GetRecipeStringValue(Recipe, "RAW", Recipe["output"])
+    BurntItem = GetRecipeStringValue(Recipe, "BURNT", Config.getString("Setting.Wok.InvalidRecipeOutput"))
+    if CurrentTime - LastStirTime > Config.getInt("Setting.Wok.TimeOut") * 1000:
+        OutputWokItem(RecipeKey, BurntItem, WokRecipe, ClickPlayer, DataFile, FileKey, ClickBlock)
+        MiniMessageUtils.sendActionBar(ClickPlayer, Config.getString("Messages.ActionBar.BurntFood"))
+        return True
+    if HasCountRequirement and DataStirFryAmount < MinValue:
+        OutputWokItem(RecipeKey, RawItem, WokRecipe, ClickPlayer, DataFile, FileKey, ClickBlock)
+        MiniMessageUtils.sendActionBar(ClickPlayer, Config.getString("Messages.ActionBar.RawFood"))
+        return True
+    elif HasCountRequirement and DataStirFryAmount > MaxValue:
+        OutputWokItem(RecipeKey, BurntItem, WokRecipe, ClickPlayer, DataFile, FileKey, ClickBlock)
+        MiniMessageUtils.sendActionBar(ClickPlayer, Config.getString("Messages.ActionBar.BurntFood"))
+        return True
     if Config.getBoolean("Setting.Wok.Failure.Enable"):
-        RemoveItemToPlayer(ClickPlayer, MainHandItem)
+        Chance = Config.getInt("Setting.Wok.Failure.Chance")
+        if random.randint(1, 100) <= Chance:
+            ErrorRecipe = Config.getString("Setting.Wok.Failure.Type")
+            OutputWokItem(RecipeKey, ErrorRecipe, WokRecipe, ClickPlayer, DataFile, FileKey, ClickBlock)
+            MiniMessageUtils.sendActionBar(ClickPlayer, Config.getString("Messages.ActionBar.FailureRecipe"))
+            return True
+    if Amount <= Tolerance:
+        OutputItem = Recipe["output"] if Recipe["output"] else RecipeKey
+        OutputWokItem(RecipeKey, OutputItem, WokRecipe, ClickPlayer, DataFile, FileKey, ClickBlock)
+        MiniMessageUtils.sendActionBar(ClickPlayer, Config.getString("Messages.ActionBar.SuccessRecipe"))
+        return True
+    elif GreaterThan > LessThan:
+        OutputWokItem(RecipeKey, BurntItem, WokRecipe, ClickPlayer, DataFile, FileKey, ClickBlock)
+        MiniMessageUtils.sendActionBar(ClickPlayer, Config.getString("Messages.ActionBar.BurntFood"))
+        return True
+    elif LessThan > GreaterThan:
+        OutputWokItem(RecipeKey, RawItem, WokRecipe, ClickPlayer, DataFile, FileKey, ClickBlock)
+        MiniMessageUtils.sendActionBar(ClickPlayer, Config.getString("Messages.ActionBar.RawFood"))
+        return True
+    if Config.getBoolean("Setting.Wok.Failure.Enable"):
         ErrorRecipe = Config.getString("Setting.Wok.Failure.Type")
-        OutputWokItem("Invalid", ErrorRecipe, WokRecipe, ClickPlayer, DataFile, FileKey, ClickBlock)
+        OutputWokItem(RecipeKey, ErrorRecipe, WokRecipe, ClickPlayer, DataFile, FileKey, ClickBlock)
         MiniMessageUtils.sendActionBar(ClickPlayer, Config.getString("Messages.ActionBar.ErrorRecipe"))
         return True
     return False
 
+# MODIFIED
 def OutputWokItem(RecipeKey, Item, RecipeConfig, ClickPlayer, DataFile, FileKey, ClickBlock):
 
-    GiveAmount = RecipeConfig.getInt(RecipeKey + ".Amount", 1)
+    GiveAmount = 1
+    for Recipe in GetRecipeDefinitions(RecipeConfig, "Item", False):
+        if Recipe["key"] == RecipeKey:
+            GiveAmount = GetRecipeIntValue(Recipe, "Amount", 1)
+            break
     ITEM = ToolUtils.createItemStack(Item, GiveAmount)
     if ITEM is None:
         return
@@ -1992,14 +1964,9 @@ def OutputWokItem(RecipeKey, Item, RecipeConfig, ClickPlayer, DataFile, FileKey,
         ItemEntity.setPickupDelay(20)
     else:
         GiveItemToPlayer(ClickPlayer, ITEM)
+    ClearStoredDisplays(ClickBlock, "Wok", GetDisplayDataPath("Wok", FileKey))
     DataFile.set("Wok." + FileKey, None)
     DataFile.save()
-    DisplayLocation = CalculateDisplayLocation(ClickBlock, "Wok")
-    NearbyDisplays = FindNearbyDisplay(DisplayLocation)
-    if NearbyDisplays:
-        for display in NearbyDisplays:
-            if display and not display.isDead():
-                display.remove()
 
 GrinderTask = None
 
@@ -2269,6 +2236,7 @@ def ShowSteamerInfo(Player, SteamerFileKey):
         MiniMessageUtils.sendMessage(Console, str(e))
         return False
 
+# MODIFIED
 def CalculateCookingProgress(SteamerFileKey):
 
     try:
@@ -2276,18 +2244,6 @@ def CalculateCookingProgress(SteamerFileKey):
         CookingProgressPath = "Steamer." + SteamerFileKey + ".CookingProgress"
         SteamPath = "Steamer." + SteamerFileKey + ".Steam"
         CurrentSteam = Data.getInt(SteamPath, 0)
-        if CurrentSteam <= 0:
-            if not Data.contains(SlotsPath) or not Data.contains(CookingProgressPath):
-                return Config.getString("Messages.NotStarted")
-            Slots = Data.getStringList(SlotsPath)
-            CookingProgress = Data.getIntegerList(CookingProgressPath)
-            AllProgressZero = True
-            for progress in CookingProgress:
-                if progress > 0:
-                    AllProgressZero = False
-                    break
-            if AllProgressZero:
-                return Config.getString("Messages.NotStarted")
         if not Data.contains(SlotsPath) or not Data.contains(CookingProgressPath):
             return Config.getString("Messages.NotStarted")
         Slots = Data.getStringList(SlotsPath)
@@ -2296,69 +2252,45 @@ def CalculateCookingProgress(SteamerFileKey):
             CookingProgress.extend([0] * (len(Slots) - len(CookingProgress)))
         elif len(CookingProgress) > len(Slots):
             CookingProgress = CookingProgress[:len(Slots)]
+        RecipeGroups, UnmatchedIndexes = FindSteamerRecipeGroups(Slots)
+        NonAirItems = 0
+        CompletedItems = 0
+        for ItemIdentifier in Slots:
+            if ItemIdentifier and ItemIdentifier != "AIR":
+                NonAirItems += 1
+                if IsSteamerOutputItem(ItemIdentifier):
+                    CompletedItems += 1
+        if not RecipeGroups:
+            if NonAirItems > 0 and CompletedItems == NonAirItems:
+                return Config.getString("Messages.Completed")
+            return Config.getString("Messages.NotStarted")
         TotalRequiredSteam = 0
         TotalCurrentProgress = 0
-        HasValidIngredients = False
-        AllItemsCompleted = True
-        ActiveItemsCount = 0
-        for i in range(len(Slots)):
-            if i >= len(CookingProgress):
-                continue
-            itemIdentifier = Slots[i]
-            if itemIdentifier == "AIR":
-                continue
-            currentItem = None
-            isInputItem = False
-            RecipeKey = ToolUtils.matchConfigKey(SteamerRecipe, itemIdentifier)
-            if RecipeKey:
-                isInputItem = True
-                currentItem = RecipeKey
-            isOutputItem = False
-            originalInputItem = None
-            if not isInputItem:
-                for rKey in SteamerRecipe.getKeys(False):
-                    outputItem = SteamerRecipe.getString(rKey + ".Output")
-                    if outputItem and outputItem.upper() == itemIdentifier.upper():
-                        isOutputItem = True
-                        originalInputItem = rKey
-                        break
-            if not isInputItem and not isOutputItem:
-                AllItemsCompleted = False
-                continue
-            ActiveItemsCount += 1
-            HasValidIngredients = True
-            TargetRecipeKey = currentItem if isInputItem else originalInputItem
-            RecipeSteam = SteamerRecipe.getInt(TargetRecipeKey + ".Steam", 0)
-            OutputItem = SteamerRecipe.getString(TargetRecipeKey + ".Output")
+        AllGroupsCompleted = True
+        for RecipeGroup in RecipeGroups:
+            Recipe = RecipeGroup["recipe"]
+            RecipeSteam = GetRecipeIntValue(Recipe, "Steam", 0)
+            OutputItem = Recipe["output"]
             if RecipeSteam <= 0 or not OutputItem:
-                AllItemsCompleted = False
+                AllGroupsCompleted = False
                 continue
+            GroupProgress = 0
+            for SlotIndex in RecipeGroup["indices"]:
+                if SlotIndex < len(CookingProgress):
+                    GroupProgress = max(GroupProgress, CookingProgress[SlotIndex])
             TotalRequiredSteam += RecipeSteam
-            if i < len(CookingProgress):
-                CurrentProgress = CookingProgress[i]
-                if isOutputItem:
-                    TotalCurrentProgress += RecipeSteam
-                else:
-                    TotalCurrentProgress += min(CurrentProgress, RecipeSteam)
-                if isOutputItem or CurrentProgress >= RecipeSteam:
-                    pass
-                else:
-                    AllItemsCompleted = False
-            else:
-                AllItemsCompleted = False
-        if not HasValidIngredients or ActiveItemsCount == 0:
-            return Config.getString("Messages.NotStarted")
-        if AllItemsCompleted and ActiveItemsCount > 0:
+            TotalCurrentProgress += min(GroupProgress, RecipeSteam)
+            if GroupProgress < RecipeSteam:
+                AllGroupsCompleted = False
+        if AllGroupsCompleted and RecipeGroups:
             return Config.getString("Messages.Completed")
         if CurrentSteam <= 0 and TotalCurrentProgress == 0:
             return Config.getString("Messages.NotStarted")
         if TotalRequiredSteam > 0:
             Percentage = (float(TotalCurrentProgress) / TotalRequiredSteam) * 100
             Percentage = max(0, min(100, Percentage))
-            FormattedPercentage = "{:.2f}%".format(Percentage)
-            return FormattedPercentage
-        else:
-            return "0.00%"
+            return "{:.2f}%".format(Percentage)
+        return "0.00%"
     except Exception as e:
         MiniMessageUtils.sendMessage(Console, str(e))
         return Config.getString("Messages.NotStarted")
@@ -2451,6 +2383,7 @@ def LoadSteamerInventory(SteamerKey, Inventory):
     except Exception as e:
         MiniMessageUtils.sendMessage(Console, str(e))
 
+# MODIFIED
 def SteamerInventoryClose(Event):
 
     Player = Event.getPlayer()
@@ -2469,13 +2402,12 @@ def SteamerInventoryClose(Event):
     slotsPath = "Steamer." + SteamerKey + ".Slots"
     if Data.contains(slotsPath):
         slots = Data.getStringList(slotsPath)
-        hasValidIngredients = False
-        for itemIdentifier in slots:
-            if itemIdentifier != "AIR" and SteamerRecipe.contains(itemIdentifier):
-                hasValidIngredients = True
-                break
-        if hasValidIngredients:
+        if HasSteamerCookableIngredients(slots):
             StartSteamerTimer()
+        else:
+            MissingInputs = GetSteamerMissingIngredients(slots)
+            if MissingInputs:
+                SendMissingIngredientMessage(Player, MissingInputs)
 
 ps.listener.registerListener(SteamerInventoryClose, InventoryCloseEvent)
 
@@ -2505,6 +2437,7 @@ def ReturnExcessItemsToPlayer(Player, ExcessItem):
     except Exception as e:
         MiniMessageUtils.sendMessage(Console, str(e))
 
+# MODIFIED
 def SaveSteamerInventory(SteamerKey, Inventory):
 
     try:
@@ -2533,13 +2466,19 @@ def SaveSteamerInventory(SteamerKey, Inventory):
                 NewCookingProgress.append(0)
         Data.set(OldSlotsPath, NewSlotItems)
         Data.set(OldCookingProgressPath, NewCookingProgress)
+        SteamerBlock = GetBlockFromFileKey(SteamerKey)
+        if SteamerBlock:
+            RefreshSteamerDisplays(SteamerBlock, SteamerKey, NewSlotItems)
         Data.save()
     except Exception as e:
         MiniMessageUtils.sendMessage(Console, str(e))
 
+# MODIFIED
 def AddFuelToHeatSource(Player, FuelItem, FuelDuration, SteamerFileKey, HeatSourceBlock):
 
     try:
+        if not ValidateSteamerCanCookOrNotify(Player, SteamerFileKey):
+            return True
         CurrentTime = System.currentTimeMillis()
         FuelDurationMs = FuelDuration * 1000
         CoolingTimePath = "Steamer." + SteamerFileKey + ".CoolingTime"
@@ -2562,9 +2501,12 @@ def AddFuelToHeatSource(Player, FuelItem, FuelDuration, SteamerFileKey, HeatSour
         MiniMessageUtils.sendMessage(Console, str(e))
         return False
 
+# MODIFIED
 def AddMoistureToSteamer(Player, MoistureItem, MoistureValue, OutputItem, SteamerFileKey):
 
     try:
+        if not ValidateSteamerCanCookOrNotify(Player, SteamerFileKey):
+            return True
         MoisturePath = "Steamer." + SteamerFileKey + ".Moisture"
         CurrentMoisture = Data.getInt(MoisturePath, 0)
         NewMoisture = CurrentMoisture + MoistureValue
@@ -2686,6 +2628,7 @@ def ProcessSingleSteamer(steamerKey, currentTime):
         MiniMessageUtils.sendMessage(Console, str(e))
         return False
 
+# MODIFIED
 def ProcessSteamConsumptionAndCooking(steamerKey):
 
     try:
@@ -2693,6 +2636,8 @@ def ProcessSteamConsumptionAndCooking(steamerKey):
         currentSteam = Data.getInt(steamPath, 0)
         resetToZero = Config.getBoolean("Setting.Steamer.ResetToZero", True)
         DataChanged = False
+        SlotsChanged = False
+        newSteam = currentSteam
         if currentSteam <= 0 and resetToZero:
             return False
         steamConversionEfficiency = Config.getInt("Setting.Steamer.SteamConversionEfficiency", 1)
@@ -2718,14 +2663,22 @@ def ProcessSteamConsumptionAndCooking(steamerKey):
         elif len(cookingProgress) > len(slots):
             cookingProgress = cookingProgress[:len(slots)]
             DataChanged = True
-        validIngredients = 0
-        totalIngredientConsumption = 0
-        for i, itemIdentifier in enumerate(slots):
-            if itemIdentifier != "AIR":
-                RecipeKey = ToolUtils.matchConfigKey(SteamerRecipe, itemIdentifier)
-                if RecipeKey:
-                    validIngredients += 1
-                    totalIngredientConsumption += steamConversionEfficiency
+        RecipeGroups, UnmatchedIndexes = FindSteamerRecipeGroups(slots)
+        ValidRecipeGroups = []
+        for RecipeGroup in RecipeGroups:
+            Recipe = RecipeGroup["recipe"]
+            RecipeSteam = GetRecipeIntValue(Recipe, "Steam", 0)
+            OutputItem = Recipe["output"]
+            if RecipeSteam > 0 and OutputItem:
+                ValidRecipeGroups.append(RecipeGroup)
+        validIngredients = len(ValidRecipeGroups)
+        if validIngredients <= 0:
+            newSteam = max(0, currentSteam - steamConsumptionEfficiency)
+            if newSteam != currentSteam:
+                Data.set(steamPath, newSteam)
+                Data.save()
+            return newSteam > 0
+        totalIngredientConsumption = validIngredients * steamConversionEfficiency
         totalSteamConsumption = steamConsumptionEfficiency + totalIngredientConsumption
         if currentSteam < totalSteamConsumption:
             availableForIngredients = max(0, currentSteam - steamConsumptionEfficiency)
@@ -2740,41 +2693,56 @@ def ProcessSteamConsumptionAndCooking(steamerKey):
             DataChanged = True
             if totalIngredientConsumption > 0:
                 progressRatio = float(actualIngredientConsumption) / float(totalIngredientConsumption)
-                for i, itemIdentifier in enumerate(slots):
-                    if i >= len(cookingProgress): continue
-                    if itemIdentifier != "AIR":
-                        RecipeKey = ToolUtils.matchConfigKey(SteamerRecipe, itemIdentifier)
-                        if RecipeKey:
-                            additionalProgress = int(steamConversionEfficiency * progressRatio)
-                            MaxSteam = SteamerRecipe.getInt(RecipeKey + ".Steam", 0)
-                            NewProgress = min(cookingProgress[i] + additionalProgress, MaxSteam)
-                            if cookingProgress[i] != NewProgress:
-                                cookingProgress[i] = NewProgress
-                                DataChanged = True
+                additionalProgress = int(steamConversionEfficiency * progressRatio)
+                for RecipeGroup in ValidRecipeGroups:
+                    Recipe = RecipeGroup["recipe"]
+                    RecipeSteam = GetRecipeIntValue(Recipe, "Steam", 0)
+                    GroupProgress = 0
+                    for SlotIndex in RecipeGroup["indices"]:
+                        if SlotIndex < len(cookingProgress):
+                            GroupProgress = max(GroupProgress, cookingProgress[SlotIndex])
+                    NewProgress = min(GroupProgress + additionalProgress, RecipeSteam)
+                    if NewProgress != GroupProgress:
+                        for SlotIndex in RecipeGroup["indices"]:
+                            if SlotIndex < len(cookingProgress):
+                                cookingProgress[SlotIndex] = NewProgress
+                        DataChanged = True
         else:
             newSteam = currentSteam - totalSteamConsumption
             Data.set(steamPath, newSteam)
             DataChanged = True
-            for i in range(len(slots)):
-                if i >= len(cookingProgress): continue
-                itemIdentifier = slots[i]
-                if itemIdentifier == "AIR": continue
-                RecipeKey = ToolUtils.matchConfigKey(SteamerRecipe, itemIdentifier)
-                if not RecipeKey: continue
-                recipeSteam = SteamerRecipe.getInt(RecipeKey + ".Steam", 0)
-                outputItem = SteamerRecipe.getString(RecipeKey + ".Output")
-                if recipeSteam <= 0 or not outputItem: continue
-                currentProgress = cookingProgress[i]
-                newProgress = currentProgress + steamConversionEfficiency
-                if newProgress >= recipeSteam:
-                    slots[i] = outputItem
-                    cookingProgress[i] = 0
+            for RecipeGroup in ValidRecipeGroups:
+                Recipe = RecipeGroup["recipe"]
+                RecipeSteam = GetRecipeIntValue(Recipe, "Steam", 0)
+                OutputItem = Recipe["output"]
+                GroupProgress = 0
+                for SlotIndex in RecipeGroup["indices"]:
+                    if SlotIndex < len(cookingProgress):
+                        GroupProgress = max(GroupProgress, cookingProgress[SlotIndex])
+                NewProgress = GroupProgress + steamConversionEfficiency
+                if NewProgress >= RecipeSteam:
+                    FirstSlotIndex = RecipeGroup["indices"][0]
+                    slots[FirstSlotIndex] = OutputItem
+                    cookingProgress[FirstSlotIndex] = 0
+                    for SlotIndex in RecipeGroup["indices"][1:]:
+                        if SlotIndex < len(slots):
+                            slots[SlotIndex] = "AIR"
+                        if SlotIndex < len(cookingProgress):
+                            cookingProgress[SlotIndex] = 0
+                    SlotsChanged = True
                 else:
-                    cookingProgress[i] = newProgress
+                    for SlotIndex in RecipeGroup["indices"]:
+                        if SlotIndex < len(cookingProgress):
+                            cookingProgress[SlotIndex] = NewProgress
                 DataChanged = True
         if DataChanged:
+            Data.set(steamPath, newSteam)
             Data.set(slotsPath, slots)
             Data.set(cookingProgressPath, cookingProgress)
+            if SlotsChanged:
+                SteamerBlock = GetBlockFromFileKey(steamerKey)
+                if SteamerBlock:
+                    RefreshSteamerDisplays(SteamerBlock, steamerKey, slots)
             Data.save()
         return validIngredients > 0 or newSteam > 0
     except Exception as e:
@@ -2873,6 +2841,706 @@ def RemoveItemToPlayer(Player, Item):
         Player.getInventory().setItemInMainHand(newItem)
     else:
         Player.getInventory().setItemInMainHand(None)
+
+# NEW
+def NormalizeItemIdentifier(ItemIdentifier):
+
+    if ItemIdentifier is None:
+        return None
+    ItemIdentifier = str(ItemIdentifier).strip()
+    if ItemIdentifier == "":
+        return None
+    Parts = ItemIdentifier.split(" ")
+    if len(Parts) < 2:
+        return ItemIdentifier.upper()
+    Namespace = Parts[0].lower()
+    ItemId = Parts[1]
+    if Namespace == ToolUtils.MINECRAFT:
+        ItemId = ItemId.upper()
+    return Namespace + " " + ItemId
+
+# NEW
+def ExtractItemIdentifier(Entry):
+
+    if Entry is None:
+        return None
+    Entry = str(Entry).strip()
+    if Entry == "":
+        return None
+    Parts = Entry.split(" ")
+    if len(Parts) >= 2:
+        return Parts[0] + " " + Parts[1]
+    return Entry
+
+# NEW
+def ParsePositiveInt(Value, DefaultValue=1):
+
+    try:
+        ParsedValue = int(Value)
+        if ParsedValue < 1:
+            return DefaultValue
+        return ParsedValue
+    except:
+        return DefaultValue
+
+# NEW
+def GetConfigStringListOrString(ConfigSection, Path):
+
+    Values = []
+    if ConfigSection is None or Path is None:
+        return Values
+    try:
+        Values = list(ConfigSection.getStringList(Path))
+    except:
+        Values = []
+    if Values:
+        return Values
+    try:
+        SingleValue = ConfigSection.getString(Path)
+        if SingleValue:
+            return [SingleValue]
+    except:
+        pass
+    return Values
+
+# NEW
+def ParseRecipeIngredientEntry(Entry, DefaultAmount=1):
+
+    Identifier = ExtractItemIdentifier(Entry)
+    if not Identifier:
+        return None
+    Parts = str(Entry).strip().split(" ")
+    Amount = DefaultAmount
+    if len(Parts) >= 3:
+        Amount = ParsePositiveInt(Parts[2], DefaultAmount)
+    return {
+        "entry": Entry,
+        "identifier": Identifier,
+        "normalized": NormalizeItemIdentifier(Identifier),
+        "amount": Amount
+    }
+
+# NEW
+def ExpandRecipeInputs(InputEntries):
+
+    ExpandedInputs = []
+    for Entry in InputEntries:
+        Ingredient = ParseRecipeIngredientEntry(Entry, 1)
+        if not Ingredient:
+            continue
+        for i in range(Ingredient["amount"]):
+            ExpandedInputs.append(Ingredient["normalized"])
+    return ExpandedInputs
+
+# NEW
+def GetRecipeDefinitions(RecipeConfig, LegacyInputField=None, UseKeyAsInput=False):
+
+    Definitions = []
+    if RecipeConfig is None:
+        return Definitions
+    RecipesSection = None
+    try:
+        RecipesSection = RecipeConfig.getConfigurationSection("recipes")
+    except:
+        RecipesSection = None
+    if RecipesSection:
+        for RecipeKey in RecipesSection.getKeys(False):
+            RecipePath = "recipes." + RecipeKey
+            InputEntries = GetConfigStringListOrString(RecipeConfig, RecipePath + ".Input")
+            if not InputEntries and LegacyInputField:
+                InputEntries = GetConfigStringListOrString(RecipeConfig, RecipePath + "." + LegacyInputField)
+            if not InputEntries:
+                continue
+            OutputItem = RecipeConfig.getString(RecipePath + ".Output")
+            Definitions.append({
+                "key": RecipeKey,
+                "path": RecipePath,
+                "config": RecipeConfig,
+                "inputEntries": InputEntries,
+                "expandedInputs": ExpandRecipeInputs(InputEntries),
+                "output": OutputItem
+            })
+    for RecipeKey in RecipeConfig.getKeys(False):
+        if str(RecipeKey).lower() == "recipes":
+            continue
+        RecipePath = RecipeKey
+        InputEntries = []
+        if LegacyInputField:
+            InputEntries = GetConfigStringListOrString(RecipeConfig, RecipePath + "." + LegacyInputField)
+        if not InputEntries:
+            InputEntries = GetConfigStringListOrString(RecipeConfig, RecipePath + ".Input")
+        if not InputEntries and UseKeyAsInput:
+            InputEntries = [RecipeKey]
+        if not InputEntries:
+            continue
+        OutputItem = RecipeConfig.getString(RecipePath + ".Output")
+        if not OutputItem and not UseKeyAsInput:
+            OutputItem = RecipeKey
+        Definitions.append({
+            "key": RecipeKey,
+            "path": RecipePath,
+            "config": RecipeConfig,
+            "inputEntries": InputEntries,
+            "expandedInputs": ExpandRecipeInputs(InputEntries),
+            "output": OutputItem
+        })
+    return Definitions
+
+# NEW
+def SortRecipeDefinitionsForMatching(RecipeDefinitions):
+
+    return sorted(RecipeDefinitions, key=lambda Recipe: (-len(Recipe["expandedInputs"]), str(Recipe["key"])))
+
+# NEW
+def RemoveIngredientMatches(AvailableInputs, RequiredInputs):
+
+    RemainingAvailable = list(AvailableInputs)
+    MissingInputs = []
+    for RequiredInput in RequiredInputs:
+        MatchedIndex = -1
+        for Index, AvailableInput in enumerate(RemainingAvailable):
+            if AvailableInput == RequiredInput:
+                MatchedIndex = Index
+                break
+        if MatchedIndex >= 0:
+            RemainingAvailable.pop(MatchedIndex)
+        else:
+            MissingInputs.append(RequiredInput)
+    return MissingInputs, RemainingAvailable
+
+# NEW
+def RecipeInputsMatchExactly(AvailableInputs, RequiredInputs):
+
+    MissingInputs, RemainingAvailable = RemoveIngredientMatches(AvailableInputs, RequiredInputs)
+    return not MissingInputs and not RemainingAvailable
+
+# NEW
+def MatchRecipeByInputs(RecipeConfig, ItemIdentifiers, LegacyInputField=None, UseKeyAsInput=False, RecipeFilter=None):
+
+    AvailableInputs = []
+    for ItemIdentifier in ItemIdentifiers:
+        if not ItemIdentifier or ItemIdentifier == "AIR":
+            continue
+        AvailableInputs.append(NormalizeItemIdentifier(ItemIdentifier))
+    RecipeDefinitions = SortRecipeDefinitionsForMatching(
+        GetRecipeDefinitions(RecipeConfig, LegacyInputField, UseKeyAsInput))
+    for Recipe in RecipeDefinitions:
+        if RecipeFilter and not RecipeFilter(Recipe):
+            continue
+        if RecipeInputsMatchExactly(AvailableInputs, Recipe["expandedInputs"]):
+            return Recipe
+    return None
+
+# NEW
+def GetPartialRecipeMissingInputs(AvailableInputs, RequiredInputs):
+
+    if not AvailableInputs or not RequiredInputs:
+        return None
+    RemainingRequired = list(RequiredInputs)
+    for AvailableInput in AvailableInputs:
+        MatchedIndex = -1
+        for Index, RequiredInput in enumerate(RemainingRequired):
+            if AvailableInput == RequiredInput:
+                MatchedIndex = Index
+                break
+        if MatchedIndex < 0:
+            return None
+        RemainingRequired.pop(MatchedIndex)
+    if RemainingRequired:
+        return RemainingRequired
+    return None
+
+# NEW
+def GetRecipeStringValue(Recipe, FieldName, DefaultValue=None):
+
+    try:
+        ConfigSection = Recipe["config"]
+        Path = Recipe["path"] + "." + FieldName
+        if ConfigSection.contains(Path):
+            return ConfigSection.getString(Path)
+    except:
+        pass
+    return DefaultValue
+
+# NEW
+def GetRecipeIntValue(Recipe, FieldName, DefaultValue=0):
+
+    try:
+        ConfigSection = Recipe["config"]
+        Path = Recipe["path"] + "." + FieldName
+        if ConfigSection.contains(Path):
+            return ConfigSection.getInt(Path, DefaultValue)
+    except:
+        pass
+    return DefaultValue
+
+# NEW
+def GetRecipeValue(Recipe, FieldName, DefaultValue=None):
+
+    try:
+        ConfigSection = Recipe["config"]
+        Path = Recipe["path"] + "." + FieldName
+        if ConfigSection.contains(Path):
+            return ConfigSection.get(Path)
+    except:
+        pass
+    return DefaultValue
+
+# NEW
+def RecipeHasField(Recipe, FieldName):
+
+    try:
+        return Recipe["config"].contains(Recipe["path"] + "." + FieldName)
+    except:
+        return False
+
+# NEW
+def GetRecipeCount(RecipeConfig, LegacyInputField=None, UseKeyAsInput=False):
+
+    return len(GetRecipeDefinitions(RecipeConfig, LegacyInputField, UseKeyAsInput))
+
+# NEW
+def FindMissingIngredientsForPartialRecipe(RecipeConfig, AvailableInputs, LegacyInputField=None, UseKeyAsInput=False, RecipeFilter=None):
+
+    RecipeDefinitions = SortRecipeDefinitionsForMatching(
+        GetRecipeDefinitions(RecipeConfig, LegacyInputField, UseKeyAsInput))
+    for Recipe in RecipeDefinitions:
+        if RecipeFilter and not RecipeFilter(Recipe):
+            continue
+        MissingInputs = GetPartialRecipeMissingInputs(AvailableInputs, Recipe["expandedInputs"])
+        if MissingInputs:
+            return MissingInputs, Recipe
+    return None, None
+
+# NEW
+def SendMissingIngredientMessage(Player, MissingInputs):
+
+    if not MissingInputs:
+        MiniMessageUtils.sendActionBar(Player, Config.getString("Messages.ActionBar.NeedMoreIngredient"))
+        return
+    MissingIdentifier = MissingInputs[0]
+    ItemStack = ToolUtils.createItemStack(MissingIdentifier, 1)
+    ItemName = MissingIdentifier
+    if ItemStack:
+        ItemName = ToolUtils.getItemDisplayName(ItemStack)
+    MiniMessageUtils.sendActionBar(
+        Player,
+        Config.getString("Messages.ActionBar.MissingIngredient"),
+        {"Item": ItemName, "ItemName": ItemName})
+
+# NEW
+def GetBlockFromFileKey(FileKey):
+
+    try:
+        Parts = FileKey.split(",")
+        if len(Parts) < 4:
+            return None
+        X = int(Parts[0])
+        Y = int(Parts[1])
+        Z = int(Parts[2])
+        WorldName = ",".join(Parts[3:])
+        World = Bukkit.getWorld(WorldName)
+        if not World:
+            return None
+        return World.getBlockAt(X, Y, Z)
+    except:
+        return None
+
+# NEW
+def GetDisplayDataPath(Target, FileKey):
+
+    return Target + "." + FileKey + ".DisplayUUIDs"
+
+# NEW
+def ResolveDisplayEntity(EntityUUID):
+
+    try:
+        return Bukkit.getEntity(UUID.fromString(str(EntityUUID)))
+    except:
+        return None
+
+# NEW
+def GetStoredDisplayEntities(DataPath):
+
+    DisplayEntities = []
+    if not DataPath or not Data.contains(DataPath):
+        return DisplayEntities
+    for EntityUUID in Data.getStringList(DataPath):
+        DisplayEntity = ResolveDisplayEntity(EntityUUID)
+        if DisplayEntity and not DisplayEntity.isDead():
+            DisplayEntities.append(DisplayEntity)
+    return DisplayEntities
+
+# MODIFIED
+def ClearStoredDisplays(Block, Target, DataPath):
+
+    for DisplayEntity in GetStoredDisplayEntities(DataPath):
+        try:
+            DisplayEntity.remove()
+        except:
+            pass
+    if DataPath:
+        Data.set(DataPath, [])
+
+# MODIFIED
+def CalculateDisplayPositions(block, itemCount, typeName):
+
+    if not block:
+        return []
+    baseLoc = block.getLocation()
+    centerX = 0.5
+    centerZ = 0.5
+    offsetY = Config.getDouble("Setting." + typeName + ".DisplayEntity.Item.Offset.Y")
+    if itemCount == 1:
+        return [baseLoc.clone().add(centerX, offsetY, centerZ)]
+    if itemCount == 2:
+        return [
+            baseLoc.clone().add(0.3, offsetY, 0.45),
+            baseLoc.clone().add(0.7, offsetY, 0.55)
+        ]
+    return []
+
+# MODIFIED
+def applyDisplayTransform(DisplayEntity, ItemStack, TypeName, RotationYOverride=None, ScaleOverride=None):
+
+    if not DisplayEntity or not ItemStack:
+        return
+    ItemIdentifier = ToolUtils.getItemIdentifier(ItemStack)
+    ConfigKey = "Setting." + TypeName + ".DisplayEntity." + ItemIdentifier
+    if not Config.contains(ConfigKey + ".Scale"):
+        Type = ToolUtils.isBlockMaterialType(ItemStack)
+        ConfigKey = "Setting." + TypeName + ".DisplayEntity." + Type
+    Scale = ScaleOverride if ScaleOverride is not None else Config.getDouble(ConfigKey + ".Scale")
+    ScaleVector = Vector3f(Scale, Scale, Scale)
+    RotX = Config.getDouble(ConfigKey + ".Rotation.X")
+    RotY = RotationYOverride if RotationYOverride is not None else Config.getDouble(ConfigKey + ".Rotation.Y")
+    RotZConfig = Config.get(ConfigKey + ".Rotation.Z")
+    RotZ = 0.0
+    if isinstance(RotZConfig, basestring):
+        if "-" in RotZConfig:
+            try:
+                MinValue, MaxValue = map(float, RotZConfig.split("-"))
+                RotZ = random.uniform(MinValue, MaxValue)
+            except ValueError:
+                RotZ = 0.0
+        else:
+            try:
+                RotZ = float(RotZConfig)
+            except ValueError:
+                RotZ = 0.0
+    else:
+        try:
+            RotZ = float(RotZConfig)
+        except ValueError:
+            RotZ = 0.0
+    Rotation = Quaternionf().rotationXYZ(math.radians(RotX), math.radians(RotY), math.radians(RotZ))
+    DisplayEntity.setTransformation(Transformation(Vector3f(), Rotation, ScaleVector, Quaternionf()))
+    DisplayEntity.setInvulnerable(True)
+    DisplayEntity.setSilent(True)
+    DisplayEntity.setPersistent(True)
+    DisplayEntity.setGravity(False)
+    DisplayEntity.setCustomNameVisible(False)
+
+# MODIFIED
+def SpawnMultiDisplays(block, itemList, typeName):
+
+    displayUUIDs = []
+    if not block:
+        return displayUUIDs
+    world = block.getWorld()
+    if not world:
+        return displayUUIDs
+    fileKey = GetFileKey(block)
+    dataPath = GetDisplayDataPath(typeName, fileKey)
+    ClearStoredDisplays(block, typeName, dataPath)
+
+    validItems = []
+    for item in itemList:
+        if item and item != "AIR":
+            validItems.append(item)
+    itemList = validItems
+
+    if len(itemList) == 0 or len(itemList) > 2:
+        Data.set(dataPath, [])
+        Data.save()
+        return []
+    positions = CalculateDisplayPositions(block, len(itemList), typeName)
+    for i, itemIdentifier in enumerate(itemList):
+        if i >= len(positions):
+            continue
+        displayIdentifier = ExtractItemIdentifier(itemIdentifier)
+        itemStack = ToolUtils.createItemStack(displayIdentifier, 1)
+        if not itemStack:
+            continue
+        loc = positions[i]
+        display = world.spawnEntity(loc, EntityType.ITEM_DISPLAY)
+        display.setItemStack(itemStack)
+        rotationY = 0
+        if len(itemList) == 1:
+            rotationY = random.uniform(-15, 15)
+        elif len(itemList) == 2:
+            base = -20 if i == 0 else 20
+            rotationY = base + random.uniform(-5, 5)
+        scale = Config.getDouble("Setting." + typeName + ".DisplayEntity.Item.Scale")
+        if len(itemList) == 2:
+            scale = scale * 0.9
+        applyDisplayTransform(display, itemStack, typeName, rotationY, scale)
+        displayUUIDs.append(str(display.getUniqueId()))
+    Data.set(dataPath, displayUUIDs)
+    Data.save()
+    return displayUUIDs
+
+# MODIFIED
+def RefreshWokDisplays(WokBlock, FileKey, ItemList):
+
+    SpawnMultiDisplays(WokBlock, ItemList, "Wok")
+
+# MODIFIED
+def RefreshSteamerDisplays(SteamerBlock, FileKey, Slots):
+
+    SlotItems = []
+    for ItemIdentifier in Slots:
+        if ItemIdentifier and ItemIdentifier != "AIR":
+            SlotItems.append(ItemIdentifier)
+    SpawnMultiDisplays(SteamerBlock, SlotItems, "Steamer")
+
+# NEW
+def ParseWokItemEntry(ItemEntry):
+
+    if not ItemEntry:
+        return None
+    Parts = str(ItemEntry).strip().split(" ")
+    if len(Parts) < 2:
+        return None
+    Identifier = Parts[0] + " " + Parts[1]
+    Amount = 1
+    StirTimes = 0
+    if len(Parts) >= 3:
+        Amount = ParsePositiveInt(Parts[2], 1)
+    if len(Parts) >= 4:
+        try:
+            StirTimes = int(Parts[3])
+        except:
+            StirTimes = 0
+    return {
+        "identifier": Identifier,
+        "normalized": NormalizeItemIdentifier(Identifier),
+        "amount": Amount,
+        "stir": StirTimes
+    }
+
+# NEW
+def GetWokExpandedInputs(ItemList):
+
+    ExpandedInputs = []
+    for ItemEntry in ItemList:
+        ParsedItem = ParseWokItemEntry(ItemEntry)
+        if not ParsedItem:
+            continue
+        for i in range(ParsedItem["amount"]):
+            ExpandedInputs.append(ParsedItem["normalized"])
+    return ExpandedInputs
+
+# NEW
+def GetWokItemMap(ItemList):
+
+    ItemMap = {}
+    for ItemEntry in ItemList:
+        ParsedItem = ParseWokItemEntry(ItemEntry)
+        if not ParsedItem:
+            continue
+        NormalizedIdentifier = ParsedItem["normalized"]
+        if NormalizedIdentifier in ItemMap:
+            ItemMap[NormalizedIdentifier]["amount"] += ParsedItem["amount"]
+            ItemMap[NormalizedIdentifier]["stir"] = max(ItemMap[NormalizedIdentifier]["stir"], ParsedItem["stir"])
+        else:
+            ItemMap[NormalizedIdentifier] = ParsedItem
+    return ItemMap
+
+# NEW
+def WokRecipeFilter(Player, HeatLevel):
+
+    def FilterRecipe(Recipe):
+        RecipePermission = GetRecipeStringValue(Recipe, "Permission")
+        if RecipePermission and not EventUtils.getPermission(Player, RecipePermission):
+            return False
+        RecipeHeat = GetRecipeIntValue(Recipe, "HeatControl", 0)
+        if RecipeHeat != int(HeatLevel) and int(HeatLevel) != 0:
+            return False
+        return True
+    return FilterRecipe
+
+# NEW
+def FindWokRecipeByIngredients(ItemList, Player, HeatLevel):
+
+    AvailableInputs = GetWokExpandedInputs(ItemList)
+    RecipeDefinitions = SortRecipeDefinitionsForMatching(GetRecipeDefinitions(WokRecipe, "Item", False))
+    RecipeFilter = WokRecipeFilter(Player, HeatLevel)
+    for Recipe in RecipeDefinitions:
+        if not RecipeFilter(Recipe):
+            continue
+        if RecipeInputsMatchExactly(AvailableInputs, Recipe["expandedInputs"]):
+            return Recipe
+    return None
+
+# NEW
+def GetWokMissingIngredients(ItemList, Player, HeatLevel):
+
+    AvailableInputs = GetWokExpandedInputs(ItemList)
+    if not AvailableInputs:
+        return None
+    if FindWokRecipeByIngredients(ItemList, Player, HeatLevel):
+        return None
+    MissingInputs, Recipe = FindMissingIngredientsForPartialRecipe(
+        WokRecipe, AvailableInputs, "Item", False, WokRecipeFilter(Player, HeatLevel))
+    return MissingInputs
+
+# NEW
+def ParseWokRecipeStirRequirement(RecipeEntry):
+
+    Parts = str(RecipeEntry).strip().split(" ")
+    if len(Parts) >= 4:
+        return Parts[3]
+    return None
+
+# NEW
+def CountWokStirMismatch(ItemStirFry, RecipeStirFry):
+
+    if RecipeStirFry is None:
+        return 0
+    if "-" in str(RecipeStirFry):
+        try:
+            RangeStart, RangeEnd = map(int, str(RecipeStirFry).split("-"))
+            MinValue = min(RangeStart, RangeEnd)
+            MaxValue = max(RangeStart, RangeEnd)
+            if ItemStirFry < MinValue:
+                return -1
+            if ItemStirFry > MaxValue:
+                return 1
+        except:
+            return 0
+    else:
+        try:
+            RequiredStirFry = int(RecipeStirFry)
+            if ItemStirFry < RequiredStirFry:
+                return -1
+            if ItemStirFry > RequiredStirFry:
+                return 1
+        except:
+            return 0
+    return 0
+
+# NEW
+def IsSteamerOutputItem(ItemIdentifier):
+
+    NormalizedIdentifier = NormalizeItemIdentifier(ItemIdentifier)
+    for Recipe in GetRecipeDefinitions(SteamerRecipe, None, True):
+        OutputItem = Recipe["output"]
+        if OutputItem and NormalizeItemIdentifier(OutputItem) == NormalizedIdentifier:
+            return True
+    return False
+
+# NEW
+def FindSteamerRecipeGroups(Slots):
+
+    AvailableSlots = []
+    for Index, ItemIdentifier in enumerate(Slots):
+        if not ItemIdentifier or ItemIdentifier == "AIR":
+            continue
+        if IsSteamerOutputItem(ItemIdentifier):
+            continue
+        AvailableSlots.append({
+            "index": Index,
+            "normalized": NormalizeItemIdentifier(ItemIdentifier)
+        })
+    UsedIndexes = set()
+    RecipeGroups = []
+    RecipeDefinitions = SortRecipeDefinitionsForMatching(GetRecipeDefinitions(SteamerRecipe, None, True))
+    for Recipe in RecipeDefinitions:
+        if not Recipe["expandedInputs"]:
+            continue
+        while True:
+            RequiredInputs = list(Recipe["expandedInputs"])
+            MatchedIndexes = []
+            for SlotInfo in AvailableSlots:
+                SlotIndex = SlotInfo["index"]
+                if SlotIndex in UsedIndexes:
+                    continue
+                MatchedInputIndex = -1
+                for RequiredIndex, RequiredInput in enumerate(RequiredInputs):
+                    if SlotInfo["normalized"] == RequiredInput:
+                        MatchedInputIndex = RequiredIndex
+                        break
+                if MatchedInputIndex >= 0:
+                    RequiredInputs.pop(MatchedInputIndex)
+                    MatchedIndexes.append(SlotIndex)
+                    if not RequiredInputs:
+                        break
+            if RequiredInputs:
+                break
+            for SlotIndex in MatchedIndexes:
+                UsedIndexes.add(SlotIndex)
+            RecipeGroups.append({
+                "recipe": Recipe,
+                "indices": MatchedIndexes
+            })
+    UnmatchedIndexes = []
+    for SlotInfo in AvailableSlots:
+        if SlotInfo["index"] not in UsedIndexes:
+            UnmatchedIndexes.append(SlotInfo["index"])
+    return RecipeGroups, UnmatchedIndexes
+
+# NEW
+def GetSteamerExpandedInputsFromSlots(Slots, SlotIndexes=None):
+
+    ExpandedInputs = []
+    TargetIndexes = SlotIndexes
+    if TargetIndexes is None:
+        TargetIndexes = range(len(Slots))
+    for Index in TargetIndexes:
+        if Index >= len(Slots):
+            continue
+        ItemIdentifier = Slots[Index]
+        if not ItemIdentifier or ItemIdentifier == "AIR":
+            continue
+        if IsSteamerOutputItem(ItemIdentifier):
+            continue
+        ExpandedInputs.append(NormalizeItemIdentifier(ItemIdentifier))
+    return ExpandedInputs
+
+# NEW
+def GetSteamerMissingIngredients(Slots):
+
+    AvailableInputs = GetSteamerExpandedInputsFromSlots(Slots)
+    if not AvailableInputs:
+        return None
+    RecipeGroups, UnmatchedIndexes = FindSteamerRecipeGroups(Slots)
+    if RecipeGroups:
+        return None
+    MissingInputs, Recipe = FindMissingIngredientsForPartialRecipe(
+        SteamerRecipe, AvailableInputs, None, True, None)
+    return MissingInputs
+
+# NEW
+def HasSteamerCookableIngredients(Slots):
+
+    RecipeGroups, UnmatchedIndexes = FindSteamerRecipeGroups(Slots)
+    return len(RecipeGroups) > 0
+
+# NEW
+def ValidateSteamerCanCookOrNotify(Player, SteamerFileKey):
+
+    SlotsPath = "Steamer." + SteamerFileKey + ".Slots"
+    if not Data.contains(SlotsPath):
+        return True
+    Slots = Data.getStringList(SlotsPath)
+    if HasSteamerCookableIngredients(Slots):
+        return True
+    MissingInputs = GetSteamerMissingIngredients(Slots)
+    if MissingInputs:
+        SendMissingIngredientMessage(Player, MissingInputs)
+        return False
+    return True
 
 def CreateItemDisplay(Location, Item, Target):
 
@@ -2996,6 +3664,7 @@ def CommandExecute(sender, label, args):
         return False
     return False
 
+# MODIFIED
 def ReloadPlugin(Target = Console):
     global Config, Prefix, ChoppingBoardRecipe, WokRecipe, Data, GrinderRecipe, SteamerRecipe
     ConfigManager.reloadAll()
@@ -3007,9 +3676,9 @@ def ReloadPlugin(Target = Console):
     SteamerRecipe = ConfigManager.getSteamerRecipe()
     Data = ConfigManager.getData()
     ChoppingBoardRecipeAmount = ChoppingBoardRecipe.getKeys(False).size()
-    WokRecipeAmount = WokRecipe.getKeys(False).size()
+    WokRecipeAmount = GetRecipeCount(WokRecipe, "Item", False)
     GrinderRecipeAmount = GrinderRecipe.getKeys(False).size()
-    SteamerRecipeAmount = SteamerRecipe.getKeys(False).size()
+    SteamerRecipeAmount = GetRecipeCount(SteamerRecipe, None, True)
     MiniMessageUtils.sendMessage(Target, Config.getString("Messages.Reload.LoadChoppingBoardRecipe"),
                                  {"Prefix": Prefix, "Amount": int(ChoppingBoardRecipeAmount)})
     MiniMessageUtils.sendMessage(Target, Config.getString("Messages.Reload.LoadWokRecipe"),

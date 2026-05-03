@@ -97,28 +97,29 @@ minecraft BEEF:
 
 **Cách tạo Recipe (Wok.yml):**
 ```yaml
-# Item kết quả khi nấu thành công (Namespace ITEM_ID)
-minecraft COOKED_BEEF:
-  # Tổng số lần đảo (Stir) yêu cầu cho toàn bộ món ăn. Có thể để 1 số hoặc khoảng "min-max"
-  Count: "10-14"
-  # Cấp độ lửa yêu cầu (1=Campfire, 2=Magma, 3=Lava)
-  HeatControl: 2
-  # Số lượng món ăn ra lò
-  Amount: 2
-  # Độ sai số (Cho phép bạn đảo dư/thiếu vài nhát so với công thức mà vẫn thành công)
-  FaultTolerance: 2
-  # Nguyên liệu cần thiết (Ghi theo thứ tự cho dễ nhìn, bỏ vào chảo theo thứ tự nào cũng được)
-  # Định dạng: Namespace ITEM_ID Số_lượng_cần Số_nhát_đảo_cần (có thể để range)
-  Item:
-  - minecraft BEEF 1 5-7
-  - minecraft CARROT 1 3-4
-  # Kết quả nếu nấu thất bại (thiếu lửa/chưa chín)
-  RAW: minecraft BEEF
-  # Kết quả nếu nấu khét (để quá lâu không đảo / đảo lố tay)
-  BURNT: minecraft CHARCOAL
-  # Quyền nấu món này
-  Permission: "fry.use"
+recipes:
+  beef_carrot:
+    # Chỉ hỗ trợ 1 hoặc 2 dòng Input để ItemDisplay hiển thị đúng.
+    # Thứ tự bỏ vào chảo không quan trọng.
+    # Định dạng Wok: Namespace ITEM_ID Số_lượng_cần Số_nhát_đảo_cần
+    Input:
+    - minecraft BEEF 1 5-7
+    - minecraft CARROT 1 3-4
+    Output: minecraft COOKED_BEEF
+    # Tổng số lần đảo yêu cầu cho toàn bộ món ăn.
+    Count: "10-14"
+    # Cấp độ lửa yêu cầu (1=Campfire, 2=Magma, 3=Lava)
+    HeatControl: 2
+    # Số lượng món ăn ra lò
+    Amount: 2
+    # Cho phép đảo dư/thiếu vài nhát so với công thức.
+    FaultTolerance: 2
+    RAW: minecraft BEEF
+    BURNT: minecraft CHARCOAL
+    Permission: "fry.use"
 ```
+
+> Với hệ thống hiển thị mới, Wok chỉ nên dùng 1-2 loại nguyên liệu trong mỗi recipe. Nếu người chơi mới bỏ một phần nguyên liệu, plugin sẽ báo nguyên liệu còn thiếu.
 
 ---
 
@@ -163,15 +164,27 @@ Steamer hoạt động bằng giao diện GUI và yêu cầu tài nguyên duy tr
 
 **Cách tạo Recipe (Steamer.yml):**
 ```yaml
-# Item đầu vào
-minecraft POTATO:
-  # Item đầu ra
-  Output: minecraft BAKED_POTATO
-  # Lượng Steam (Hơi nước) cần để làm chín. Steam càng cao, hấp càng lâu.
-  Steam: 60
-  # Quyền sử dụng
-  Permission: "steam.use"
+recipes:
+  beef_carrot:
+    # Chỉ hỗ trợ 1 hoặc 2 dòng Input để ItemDisplay hiển thị đúng.
+    # Thứ tự đặt item trong GUI không quan trọng.
+    Input:
+    - minecraft BEEF
+    - minecraft CARROT
+    Output: minecraft COOKED_BEEF
+    # Lượng Steam cần để làm chín. Steam càng cao, hấp càng lâu.
+    Steam: 120
+    Permission: "steam.use"
+
+  baked_potato:
+    Input:
+    - minecraft POTATO
+    Output: minecraft BAKED_POTATO
+    Steam: 60
+    Permission: "steam.use"
 ```
+
+> Nếu chỉ đặt một phần nguyên liệu của recipe nhiều input, Steamer sẽ chặn nấu và hiển thị thông báo cần thêm nguyên liệu.
 
 ---
 

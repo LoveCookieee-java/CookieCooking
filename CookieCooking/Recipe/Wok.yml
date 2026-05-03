@@ -1,151 +1,154 @@
-minecraft COOKED_CHICKEN:
-  Count: "4-6"
-  HeatControl: 1
-  Amount: 1
-  FaultTolerance: 1
-  Item:
-  - minecraft EGG 1 4-6
-  RAW: minecraft EGG
-  BURNT: minecraft CHARCOAL
-  Permission: "fry.use"
+recipes:
+  cooked_chicken:
+    Input:
+    - minecraft EGG 1 4-6
+    Output: minecraft COOKED_CHICKEN
+    Count: "4-6"
+    HeatControl: 1
+    Amount: 1
+    FaultTolerance: 1
+    RAW: minecraft EGG
+    BURNT: minecraft CHARCOAL
+    Permission: "fry.use"
 
-minecraft BAKED_POTATO:
-  Count: "5-8"
-  HeatControl: 1
-  Amount: 2
-  FaultTolerance: 1
-  Item:
-  - minecraft POTATO 2 5-8
-  RAW: minecraft POTATO
-  BURNT: minecraft CHARCOAL
-  Permission: "fry.use"
+  baked_potato:
+    Input:
+    - minecraft POTATO 2 5-8
+    Output: minecraft BAKED_POTATO
+    Count: "5-8"
+    HeatControl: 1
+    Amount: 2
+    FaultTolerance: 1
+    RAW: minecraft POTATO
+    BURNT: minecraft CHARCOAL
+    Permission: "fry.use"
 
-minecraft MUSHROOM_STEW:
-  Count: "6-8"
-  HeatControl: 1
-  Amount: 1
-  FaultTolerance: 1
-  Item:
-  - minecraft BROWN_MUSHROOM 1 3-4
-  - minecraft RED_MUSHROOM 1 3-4
-  RAW: minecraft BROWN_MUSHROOM
-  BURNT: minecraft CHARCOAL
-  Permission: "fry.use"
+  mushroom_stew:
+    Input:
+    - minecraft BROWN_MUSHROOM 1 3-4
+    - minecraft RED_MUSHROOM 1 3-4
+    Output: minecraft MUSHROOM_STEW
+    Count: "6-8"
+    HeatControl: 1
+    Amount: 1
+    FaultTolerance: 1
+    RAW: minecraft BROWN_MUSHROOM
+    BURNT: minecraft CHARCOAL
+    Permission: "fry.use"
 
-minecraft COOKED_BEEF:
-  Count: "10-14"
-  HeatControl: 2
-  Amount: 2
-  FaultTolerance: 2
-  Item:
-  - minecraft BEEF 1 5-7
-  - minecraft CARROT 1 3-4
-  - minecraft POTATO 1 2-3
-  RAW: minecraft BEEF
-  BURNT: minecraft CHARCOAL
-  Permission: "fry.use"
+  beef_carrot:
+    Input:
+    - minecraft BEEF 1 5-7
+    - minecraft CARROT 1 3-4
+    Output: minecraft COOKED_BEEF
+    Count: "10-14"
+    HeatControl: 2
+    Amount: 2
+    FaultTolerance: 2
+    RAW: minecraft BEEF
+    BURNT: minecraft CHARCOAL
+    Permission: "fry.use"
 
-minecraft COOKED_PORKCHOP:
-  Count: "8-12"
-  HeatControl: 2
-  Amount: 2
-  FaultTolerance: 2
-  Item:
-  - minecraft PORKCHOP 1 5-7
-  - minecraft CARROT 1 3-5
-  RAW: minecraft PORKCHOP
-  BURNT: minecraft CHARCOAL
-  Permission: "fry.use"
+  pork_carrot:
+    Input:
+    - minecraft PORKCHOP 1 5-7
+    - minecraft CARROT 1 3-5
+    Output: minecraft COOKED_PORKCHOP
+    Count: "8-12"
+    HeatControl: 2
+    Amount: 2
+    FaultTolerance: 2
+    RAW: minecraft PORKCHOP
+    BURNT: minecraft CHARCOAL
+    Permission: "fry.use"
 
-minecraft RABBIT_STEW:
-  Count: "15-20"
-  HeatControl: 2
-  Amount: 1
-  FaultTolerance: 2
-  Item:
-  - minecraft RABBIT 1 6-8
-  - minecraft CARROT 1 3-4
-  - minecraft POTATO 1 3-4
-  - minecraft BROWN_MUSHROOM 1 3-4
-  RAW: minecraft RABBIT
-  BURNT: minecraft BONE_MEAL
-  Permission: "fry.use"
+  rabbit_potato:
+    Input:
+    - minecraft RABBIT 1 6-8
+    - minecraft POTATO 1 3-4
+    Output: minecraft RABBIT_STEW
+    Count: "12-16"
+    HeatControl: 2
+    Amount: 1
+    FaultTolerance: 2
+    RAW: minecraft RABBIT
+    BURNT: minecraft BONE_MEAL
+    Permission: "fry.use"
 
-minecraft COOKED_COD:
-  Count: "6-9"
-  HeatControl: 2
-  Amount: 1
-  FaultTolerance: 1
-  Item:
-  - minecraft COD 1 4-6
-  - minecraft KELP 1 2-3
-  RAW: minecraft COD
-  BURNT: minecraft CHARCOAL
-  Permission: "fry.use"
+  cod_kelp:
+    Input:
+    - minecraft COD 1 4-6
+    - minecraft KELP 1 2-3
+    Output: minecraft COOKED_COD
+    Count: "6-9"
+    HeatControl: 2
+    Amount: 1
+    FaultTolerance: 1
+    RAW: minecraft COD
+    BURNT: minecraft CHARCOAL
+    Permission: "fry.use"
 
-minecraft COOKED_SALMON:
-  Count: "8-11"
-  HeatControl: 2
-  Amount: 1
-  FaultTolerance: 1
-  Item:
-  - minecraft SALMON 1 5-7
-  - minecraft BEETROOT 1 3-4
-  RAW: minecraft SALMON
-  BURNT: minecraft CHARCOAL
-  Permission: "fry.use"
+  salmon_beetroot:
+    Input:
+    - minecraft SALMON 1 5-7
+    - minecraft BEETROOT 1 3-4
+    Output: minecraft COOKED_SALMON
+    Count: "8-11"
+    HeatControl: 2
+    Amount: 1
+    FaultTolerance: 1
+    RAW: minecraft SALMON
+    BURNT: minecraft CHARCOAL
+    Permission: "fry.use"
 
-minecraft SUSPICIOUS_STEW:
-  Count: "18-24"
-  HeatControl: 3
-  Amount: 1
-  FaultTolerance: 2
-  Item:
-  - minecraft BROWN_MUSHROOM 2 6-8
-  - minecraft RED_MUSHROOM 2 6-8
-  - minecraft BEETROOT 1 3-4
-  - minecraft SUGAR 1 3-4
-  RAW: minecraft MUSHROOM_STEW
-  BURNT: minecraft BONE_MEAL
-  Permission: "fry.use"
+  suspicious_mushroom:
+    Input:
+    - minecraft BROWN_MUSHROOM 1 6-8
+    - minecraft RED_MUSHROOM 1 6-8
+    Output: minecraft SUSPICIOUS_STEW
+    Count: "12-16"
+    HeatControl: 3
+    Amount: 1
+    FaultTolerance: 2
+    RAW: minecraft MUSHROOM_STEW
+    BURNT: minecraft BONE_MEAL
+    Permission: "fry.use"
 
-minecraft COOKED_MUTTON:
-  Count: "12-16"
-  HeatControl: 3
-  Amount: 3
-  FaultTolerance: 2
-  Item:
-  - minecraft MUTTON 2 6-8
-  - minecraft SUGAR 1 3-4
-  - minecraft SWEET_BERRIES 1 3-4
-  RAW: minecraft MUTTON
-  BURNT: minecraft CHARCOAL
-  Permission: "fry.use"
+  berry_mutton:
+    Input:
+    - minecraft MUTTON 1 6-8
+    - minecraft SWEET_BERRIES 1 3-4
+    Output: minecraft COOKED_MUTTON
+    Count: "12-16"
+    HeatControl: 3
+    Amount: 2
+    FaultTolerance: 2
+    RAW: minecraft MUTTON
+    BURNT: minecraft CHARCOAL
+    Permission: "fry.use"
 
-minecraft PUMPKIN_PIE:
-  Count: "14-18"
-  HeatControl: 3
-  Amount: 3
-  FaultTolerance: 2
-  Item:
-  - minecraft PUMPKIN 1 5-7
-  - minecraft SUGAR 1 4-5
-  - minecraft EGG 1 3-4
-  - minecraft WHEAT 1 2-3
-  RAW: minecraft PUMPKIN
-  BURNT: minecraft CHARCOAL
-  Permission: "fry.use"
+  pumpkin_pie:
+    Input:
+    - minecraft PUMPKIN 1 5-7
+    - minecraft EGG 1 3-4
+    Output: minecraft PUMPKIN_PIE
+    Count: "10-14"
+    HeatControl: 3
+    Amount: 2
+    FaultTolerance: 2
+    RAW: minecraft PUMPKIN
+    BURNT: minecraft CHARCOAL
+    Permission: "fry.use"
 
-minecraft GOLDEN_APPLE:
-  Count: "20-25"
-  HeatControl: 3
-  Amount: 1
-  FaultTolerance: 1
-  Item:
-  - minecraft APPLE 1 8-10
-  - minecraft GOLD_INGOT 4 6-8
-  - minecraft HONEY_BOTTLE 1 4-5
-  - minecraft SUGAR 1 2-3
-  RAW: minecraft APPLE
-  BURNT: minecraft CHARCOAL
-  Permission: "fry.use"
+  golden_apple:
+    Input:
+    - minecraft APPLE 1 8-10
+    - minecraft GOLD_INGOT 4 6-8
+    Output: minecraft GOLDEN_APPLE
+    Count: "18-24"
+    HeatControl: 3
+    Amount: 1
+    FaultTolerance: 1
+    RAW: minecraft APPLE
+    BURNT: minecraft CHARCOAL
+    Permission: "fry.use"

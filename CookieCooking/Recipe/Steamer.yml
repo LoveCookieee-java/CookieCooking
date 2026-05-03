@@ -1,99 +1,114 @@
-minecraft POTATO:
-  Output: minecraft BAKED_POTATO
-  Steam: 60
-  Permission: "steam.use"
+recipes:
+  baked_potato:
+    Input:
+    - minecraft POTATO
+    Output: minecraft BAKED_POTATO
+    Steam: 60
+    Permission: "steam.use"
 
-minecraft CARROT:
-  Output: minecraft GOLDEN_CARROT
-  Steam: 80
-  Permission: "steam.use"
+  golden_carrot:
+    Input:
+    - minecraft CARROT
+    Output: minecraft GOLDEN_CARROT
+    Steam: 80
+    Permission: "steam.use"
 
-minecraft BEETROOT:
-  Output: minecraft BEETROOT_SOUP
-  Steam: 70
-  Permission: "steam.use"
+  beetroot_soup:
+    Input:
+    - minecraft BEETROOT
+    Output: minecraft BEETROOT_SOUP
+    Steam: 70
+    Permission: "steam.use"
 
-minecraft PUMPKIN:
-  Output: minecraft PUMPKIN_PIE
-  Steam: 100
-  Permission: "steam.use"
+  mushroom_stew:
+    Input:
+    - minecraft BROWN_MUSHROOM
+    - minecraft RED_MUSHROOM
+    Output: minecraft MUSHROOM_STEW
+    Steam: 90
+    Permission: "steam.use"
 
-minecraft BROWN_MUSHROOM:
-  Output: minecraft MUSHROOM_STEW
-  Steam: 60
-  Permission: "steam.use"
+  beef_carrot:
+    Input:
+    - minecraft BEEF
+    - minecraft CARROT
+    Output: minecraft COOKED_BEEF
+    Steam: 120
+    Permission: "steam.use"
 
-minecraft BEEF:
-  Output: minecraft COOKED_BEEF
-  Steam: 120
-  Permission: "steam.use"
+  pork_potato:
+    Input:
+    - minecraft PORKCHOP
+    - minecraft POTATO
+    Output: minecraft COOKED_PORKCHOP
+    Steam: 120
+    Permission: "steam.use"
 
-minecraft PORKCHOP:
-  Output: minecraft COOKED_PORKCHOP
-  Steam: 120
-  Permission: "steam.use"
+  chicken_egg:
+    Input:
+    - minecraft CHICKEN
+    - minecraft EGG
+    Output: minecraft COOKED_CHICKEN
+    Steam: 100
+    Permission: "steam.use"
 
-minecraft CHICKEN:
-  Output: minecraft COOKED_CHICKEN
-  Steam: 100
-  Permission: "steam.use"
+  mutton_berries:
+    Input:
+    - minecraft MUTTON
+    - minecraft SWEET_BERRIES
+    Output: minecraft COOKED_MUTTON
+    Steam: 100
+    Permission: "steam.use"
 
-minecraft MUTTON:
-  Output: minecraft COOKED_MUTTON
-  Steam: 100
-  Permission: "steam.use"
+  rabbit_stew:
+    Input:
+    - minecraft RABBIT
+    - minecraft CARROT
+    Output: minecraft RABBIT_STEW
+    Steam: 110
+    Permission: "steam.use"
 
-minecraft RABBIT:
-  Output: minecraft COOKED_RABBIT
-  Steam: 90
-  Permission: "steam.use"
+  cod_kelp:
+    Input:
+    - minecraft COD
+    - minecraft KELP
+    Output: minecraft COOKED_COD
+    Steam: 80
+    Permission: "steam.use"
 
-minecraft COD:
-  Output: minecraft COOKED_COD
-  Steam: 80
-  Permission: "steam.use"
+  salmon_beetroot:
+    Input:
+    - minecraft SALMON
+    - minecraft BEETROOT
+    Output: minecraft COOKED_SALMON
+    Steam: 80
+    Permission: "steam.use"
 
-minecraft SALMON:
-  Output: minecraft COOKED_SALMON
-  Steam: 80
-  Permission: "steam.use"
+  bread:
+    Input:
+    - minecraft WHEAT
+    Output: minecraft BREAD
+    Steam: 80
+    Permission: "steam.use"
 
-minecraft KELP:
-  Output: minecraft DRIED_KELP
-  Steam: 40
-  Permission: "steam.use"
+  golden_apple:
+    Input:
+    - minecraft APPLE
+    - minecraft GOLD_INGOT
+    Output: minecraft GOLDEN_APPLE
+    Steam: 250
+    Permission: "steam.use"
 
-minecraft WHEAT:
-  Output: minecraft BREAD
-  Steam: 80
-  Permission: "steam.use"
+  dried_kelp:
+    Input:
+    - minecraft KELP
+    Output: minecraft DRIED_KELP
+    Steam: 40
+    Permission: "steam.use"
 
-minecraft EGG:
-  Output: minecraft COOKIE
-  Steam: 50
-  Permission: "steam.use"
-
-minecraft SWEET_BERRIES:
-  Output: minecraft GLOW_BERRIES
-  Steam: 60
-  Permission: "steam.use"
-
-minecraft APPLE:
-  Output: minecraft GOLDEN_APPLE
-  Steam: 250
-  Permission: "steam.use"
-
-minecraft PUFFERFISH:
-  Output: minecraft TROPICAL_FISH
-  Steam: 200
-  Permission: "steam.use"
-
-minecraft CHORUS_FRUIT:
-  Output: minecraft POPPED_CHORUS_FRUIT
-  Steam: 150
-  Permission: "steam.use"
-
-minecraft HONEYCOMB:
-  Output: minecraft HONEY_BOTTLE
-  Steam: 120
-  Permission: "steam.use"
+  popped_chorus:
+    Input:
+    - minecraft CHORUS_FRUIT
+    Output: minecraft POPPED_CHORUS_FRUIT
+    Steam: 150
+    Permission: "steam.use"

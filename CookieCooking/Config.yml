@@ -222,6 +222,31 @@ Setting:
     # Steam consumption efficiency. This controls the steamer's default steam drain rate, even when no ingredients are cooking
     # That is 1 steam/s
     SteamConsumptionEfficiency: 1
+    DisplayEntity:
+      Item:
+        Offset:
+          X: 0.5
+          Y: 1.02
+          Z: 0.5
+        Rotation:
+          X: 90.0
+          Y: 0.0
+          # Allows decimal Z-axis rotation angles (0.0, 360.0)
+          # Also allows a random range value (0.0-360.0)
+          Z: 0.0-90.0
+        Scale: 0.5
+      Block:
+        Offset:
+          X: 0.5
+          Y: 1.125
+          Z: 0.5
+        Rotation:
+          X: 0.0
+          Y: 90.0
+          # Allows decimal Z-axis rotation angles (0.0, 360.0)
+          # Also allows a random range value (0.0-360.0)
+          Z: 0.0
+        Scale: 0.25
   Sound:
     # Sound played when adding ingredients to the chopping board
     ChoppingBoardAddItem: entity.item_frame.add_item
@@ -290,6 +315,8 @@ Messages:
       <aqua>{Moisture} <dark_gray>| <green>Current moisture: <blue>{Total}'
     OnRunGrinder: '<red>The grinder is running! Please try again later! '
     WokAddItem: '<green>Added <white>{Material} <green>to the wok! '
+    NeedMoreIngredient: <red>Need one more ingredient
+    MissingIngredient: '<red>Need one more ingredient: <white>{Item}'
     SteamerInfo: '<gray>Burn time: <yellow>{BurningTime}</yellow>s | Moisture: <aqua>{Moisture}</aqua>
       | Steam: <white>{Steam}</white> | Cooking progress: <yellow>{Progress}</gray>'
     SuccessRecipe: '<green>Perfect! You cooked a delicious dish! '

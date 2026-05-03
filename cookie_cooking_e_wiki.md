@@ -91,18 +91,25 @@ minecraft BEEF:
 
 **Recipe Example (Wok.yml):**
 ```yaml
-minecraft COOKED_BEEF:
-  Count: "10-14"
-  HeatControl: 2
-  Amount: 2
-  FaultTolerance: 2
-  Item:
-  - minecraft BEEF 1 5-7
-  - minecraft CARROT 1 3-4
-  RAW: minecraft BEEF
-  BURNT: minecraft CHARCOAL
-  Permission: "fry.use"
+recipes:
+  beef_carrot:
+    # Only 1 or 2 Input lines are supported for clean ItemDisplay rendering.
+    # Ingredient order does not matter.
+    # Wok format: Namespace ITEM_ID RequiredAmount RequiredStirCount
+    Input:
+    - minecraft BEEF 1 5-7
+    - minecraft CARROT 1 3-4
+    Output: minecraft COOKED_BEEF
+    Count: "10-14"
+    HeatControl: 2
+    Amount: 2
+    FaultTolerance: 2
+    RAW: minecraft BEEF
+    BURNT: minecraft CHARCOAL
+    Permission: "fry.use"
 ```
+
+> With the current display system, each Wok recipe should use only one or two ingredient types. Partial recipes show a missing ingredient message.
 
 ---
 
@@ -141,11 +148,26 @@ Requires **Moisture** and **Steam**:
 
 **Recipe Example (Steamer.yml):**
 ```yaml
-minecraft POTATO:
-  Output: minecraft BAKED_POTATO
-  Steam: 60
-  Permission: "steam.use"
+recipes:
+  beef_carrot:
+    # Only 1 or 2 Input lines are supported for clean ItemDisplay rendering.
+    # Slot order does not matter.
+    Input:
+    - minecraft BEEF
+    - minecraft CARROT
+    Output: minecraft COOKED_BEEF
+    Steam: 120
+    Permission: "steam.use"
+
+  baked_potato:
+    Input:
+    - minecraft POTATO
+    Output: minecraft BAKED_POTATO
+    Steam: 60
+    Permission: "steam.use"
 ```
+
+> If a player places only part of a multi-input recipe, the Steamer blocks cooking and shows a missing ingredient message.
 
 ---
 
@@ -155,4 +177,3 @@ minecraft POTATO:
 2. **Reload Plugin:** Use `/cooking reload` after editing YAML files.
 3. **Hologram Bugs:** Use `/cooking clear` if floating text remains.
 4. **Localization:** Messages and holograms can be customized using MiniMessage format in `Config.yml`.
-
